@@ -1,0 +1,141 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  release:
+    types: [created]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Check formatting
+        run: cargo fmt -- --check
+      
+      - name: Clippy check
+        run: cargo clippy -- -D warnings
+      
+      - name: Run tests
+        run: cargo test --verbose
+
+  build:
+    name: Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            artifact_name: image-info-tool-linux
+            binary_name: image-info-tool
+          - os: macos-latest
+            artifact_name: image-info-tool-macos
+            binary_name: image-info-tool
+          - os: windows-latest
+            artifact_name: image-info-tool-windows
+            binary_name: image-info-tool.exe
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Build release
+        run: cargo build --release --verbose
+      
+      - name: Strip binary (Linux/macOS)
+        if: matrix.os != 'windows-latest'
+        run: |
+          strip target/release/${{ matrix.binary_name }}
+      
+      - name: Package binary
+        shell: bash
+        run: |
+          mkdir -p dist
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            cp target/release/${{ matrix.binary_name }} dist/
+            7z a -tzip ${{ matrix.artifact_name }}.zip dist/*
+          else
+            cp target/release/${{ matrix.binary_name }} dist/
+            tar czf ${{ matrix.artifact_name }}.tar.gz -C dist .
+          fi
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.artifact_name }}.*
+
+  release:
+    name: Create Release
+    needs: [test, build]
+    if: github.event_name == 'release' && github.event.action == 'created'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+      
+      - name: Display structure of downloaded files
+        run: find artifacts -type f
+      
+      - name: Create Release Assets
+        run: |
+          mkdir -p release_assets
+          
+          # Windows
+          find artifacts -name "image-info-tool-windows*" -type f -exec cp {} release_assets/windows.zip \;
+          
+          # macOS
+          find artifacts -name "image-info-tool-macos*" -type f -exec cp {} release_assets/macos.tar.gz \;
+          
+          # Linux
+          find artifacts -name "image-info-tool-linux*" -type f -exec cp {} release_assets/linux.tar.gz \;
+          
+          # Create SHA256 checksums
+          cd release_assets
+          for file in *; do
+            sha256sum "$file" > "$file.sha256"
+          done
+      
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: release_assets/*
+          draft: false
+          prerelease: false
