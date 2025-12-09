@@ -4,6 +4,7 @@ use chrono::Local;
 use image::{DynamicImage, ImageFormat};
 use std::fs;
 use std::path::{Path, PathBuf};
+use jpeg_encoder::{Encoder as JpegRawEncoder, ColorType as JpegColorType, Density};
 
 #[allow(dead_code)]
 pub fn format_file_size(size: u64) -> String {
@@ -162,17 +163,57 @@ pub fn convert_color_mode(img: &DynamicImage, target_mode: &str) -> Result<Dynam
             Ok(gray_img)
         }
         "CMYK" => {
-            // 将RGB转换为CMYK
-            let rgb_img = match img {
+            // CMYK requires special handling during save, 
+            // so we return the RGB image here and handle conversion in batch_convert_color_mode
+             let rgb_img = match img {
                 DynamicImage::ImageRgb8(_) => img.clone(),
                 _ => img.to_rgb8().into(),
             };
-
-            // 使用改进的CMYK转换算法
-            Ok(rgb_to_cmyk_improved(&rgb_img))
+            Ok(rgb_img)
         }
         _ => anyhow::bail!("不支持的色彩模式: {}", target_mode),
     }
+}
+
+fn save_as_cmyk(img: &DynamicImage, path: &Path) -> Result<()> {
+    let rgb = img.to_rgb8();
+    let width = rgb.width();
+    let height = rgb.height();
+    let mut cmyk_data = Vec::with_capacity((width * height * 4) as usize);
+
+    for pixel in rgb.pixels() {
+        let r = pixel[0] as f32 / 255.0;
+        let g = pixel[1] as f32 / 255.0;
+        let b = pixel[2] as f32 / 255.0;
+
+        let k = 1.0 - r.max(g).max(b);
+        let c = if k < 1.0 { (1.0 - r - k) / (1.0 - k) } else { 0.0 };
+        let m = if k < 1.0 { (1.0 - g - k) / (1.0 - k) } else { 0.0 };
+        let y = if k < 1.0 { (1.0 - b - k) / (1.0 - k) } else { 0.0 };
+
+        // Naive conversion often usually results in inverted CMYK for JPEGs (Adobe style),
+        // but standard math is:
+        // C = 255 * c
+        // M = 255 * m
+        // Y = 255 * y
+        // K = 255 * k
+        // However, JPEGs often store CMYK as inverted (255-val).
+        // Let's stick to standard byte values first.
+        
+        cmyk_data.push((c * 255.0) as u8);
+        cmyk_data.push((m * 255.0) as u8);
+        cmyk_data.push((y * 255.0) as u8);
+        cmyk_data.push((k * 255.0) as u8);
+    }
+
+    let mut encoder = JpegRawEncoder::new_file(path, 95)?; // Quality 95
+    encoder.set_density(Density::Inch { x: 300, y: 300 });
+    
+    // Use jpeg-encoder's ColorType::Cmyk which allows 4-channel encoding
+    encoder.encode(&cmyk_data, width as u16, height as u16, JpegColorType::Cmyk)
+        .map_err(|e| anyhow::anyhow!("编码错误: {}", e))?; 
+        
+    Ok(())
 }
 
 pub fn batch_convert_color_mode<P: AsRef<Path>>(
@@ -229,39 +270,56 @@ pub fn batch_convert_color_mode<P: AsRef<Path>>(
         // 转换图片
         match image::open(&original_path) {
             Ok(img) => {
-                match convert_color_mode(&img, target_mode) {
-                    Ok(converted_img) => {
-                        // 保存转换后的图片
-                        let format = if output_extension.to_lowercase() == "jpg"
-                            || output_extension.to_lowercase() == "jpeg"
-                        {
-                            ImageFormat::Jpeg
-                        } else if output_extension.to_lowercase() == "png" {
-                            ImageFormat::Png
-                        } else {
-                            // 尝试根据扩展名推断格式
-                            ImageFormat::from_extension(&output_extension)
-                                .unwrap_or(ImageFormat::Png)
-                        };
+                if target_mode.to_uppercase() == "CMYK" {
+                     match save_as_cmyk(&img, &output_path) {
+                        Ok(_) => {
+                            results.push((
+                                image_info.file_name.clone(),
+                                format!("成功(CMYK) -> {}", output_file_name),
+                            ));
+                        }
+                        Err(e) => {
+                            results.push((
+                                image_info.file_name.clone(),
+                                format!("CMYK转换失败: {}", e),
+                            ));
+                        }
+                     }
+                } else {
+                    match convert_color_mode(&img, target_mode) {
+                        Ok(converted_img) => {
+                            // 保存转换后的图片
+                            let format = if output_extension.to_lowercase() == "jpg"
+                                || output_extension.to_lowercase() == "jpeg"
+                            {
+                                ImageFormat::Jpeg
+                            } else if output_extension.to_lowercase() == "png" {
+                                ImageFormat::Png
+                            } else {
+                                // 尝试根据扩展名推断格式
+                                ImageFormat::from_extension(&output_extension)
+                                    .unwrap_or(ImageFormat::Png)
+                            };
 
-                        match save_image_with_format(&converted_img, &output_path, format, Some(95))
-                        {
-                            Ok(_) => {
-                                results.push((
-                                    image_info.file_name.clone(),
-                                    format!("成功 -> {}", output_file_name),
-                                ));
-                            }
-                            Err(e) => {
-                                results.push((
-                                    image_info.file_name.clone(),
-                                    format!("保存失败: {}", e),
-                                ));
+                            match save_image_with_format(&converted_img, &output_path, format, Some(95))
+                            {
+                                Ok(_) => {
+                                    results.push((
+                                        image_info.file_name.clone(),
+                                        format!("成功 -> {}", output_file_name),
+                                    ));
+                                }
+                                Err(e) => {
+                                    results.push((
+                                        image_info.file_name.clone(),
+                                        format!("保存失败: {}", e),
+                                    ));
+                                }
                             }
                         }
-                    }
-                    Err(e) => {
-                        results.push((image_info.file_name.clone(), format!("转换失败: {}", e)));
+                        Err(e) => {
+                            results.push((image_info.file_name.clone(), format!("转换失败: {}", e)));
+                        }
                     }
                 }
             }

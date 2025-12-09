@@ -616,8 +616,8 @@ impl eframe::App for ImageToolApp {
         // 处理消息
         self.process_messages(ctx);
 
-        egui::CentralPanel::default().show(ctx, |ui| {
-            // 顶部按钮区
+        // 1. 顶部工具栏
+        egui::TopBottomPanel::top("toolbar").show(ctx, |ui| {
             ui.horizontal(|ui| {
                 let is_busy = self.state != AppState::Idle;
 
@@ -672,34 +672,74 @@ impl eframe::App for ImageToolApp {
                     {
                         self.show_clear_dialog = true;
                     }
+                });
+            });
+        });
 
-                    // 状态标签（放在最后）
-                    ui.label(format!("状态: {}", self.status_message));
+        // 2. 底部状态栏
+        egui::TopBottomPanel::bottom("status_bar").show(ctx, |ui| {
+            ui.horizontal(|ui| {
+                ui.label(&self.status_message);
+
+                if self.state != AppState::Idle {
+                    ui.with_layout(
+                        egui::Layout::right_to_left(egui::Align::Center),
+                        |ui| {
+                            ui.spinner();
+                        },
+                    );
+                }
+            });
+        });
+
+        // 3. 右侧预览面板
+        egui::SidePanel::right("preview_panel")
+            .resizable(true)
+            .default_width(350.0)
+            .min_width(200.0)
+            .show(ctx, |ui| {
+                ui.vertical(|ui| {
+                    ui.label(egui::RichText::new("图片预览").heading().strong());
+                    ui.separator();
+
+                    if let Some(texture) = &self.preview_texture {
+                        let available_size = ui.available_size();
+                        let (rect, _response) = ui.allocate_exact_size(available_size, egui::Sense::hover());
+
+                        ui.allocate_ui_at_rect(rect, |ui| {
+                            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                                let texture_size = texture.size_vec2();
+                                
+                                // Prevent division by zero
+                                if texture_size.x > 0.0 && texture_size.y > 0.0 {
+                                    // Calculate scale factor to fit within available space keeping aspect ratio
+                                    let width_scale = rect.width() / texture_size.x;
+                                    let height_scale = rect.height() / texture_size.y;
+                                    // Shrink by 1/3 (show at ~66% of max fit size)
+                                    let scale = width_scale.min(height_scale) * 0.66;
+                                    
+                                    let new_size = texture_size * scale;
+                                    
+                                    // Add some right padding
+                                    ui.add_space(30.0);
+                                    
+                                    ui.add(
+                                        egui::Image::new(texture)
+                                            .fit_to_exact_size(new_size)
+                                    );
+                                }
+                            });
+                        });
+                    } else {
+                        ui.centered_and_justified(|ui| {
+                             ui.label("请选择图片预览");
+                        });
+                    }
                 });
             });
 
-            ui.separator();
-
-            // 图片列表和预览区
-            egui::TopBottomPanel::bottom("preview_panel")
-                .resizable(true)
-                .min_height(200.0)
-                .show_inside(ui, |ui| {
-                    ui.vertical(|ui| {
-                        ui.heading("图片预览");
-
-                        if let Some(texture) = &self.preview_texture {
-                            ui.image(texture);
-                        } else {
-                            ui.centered_and_justified(|ui| {
-                                ui.label("\n\n请在列表中选择图片以预览\n\n");
-                            });
-                        }
-                    });
-                });
-
-            // 图片列表区
-            egui::CentralPanel::default().show_inside(ui, |ui| {
+        // 4. 中间列表面板
+        egui::CentralPanel::default().show(ctx, |ui| {
                 ui.heading("图片列表");
 
                 if self.state == AppState::Loading {
@@ -720,13 +760,13 @@ impl eframe::App for ImageToolApp {
                         .striped(true)
                         .resizable(true)
                         .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                        .column(Column::auto().at_least(300.0)) // 文件名
-                        .column(Column::auto().at_least(100.0)) // 像素尺寸
-                        .column(Column::auto().at_least(100.0)) // 物理尺寸
-                        .column(Column::auto().at_least(80.0)) // DPI
-                        .column(Column::auto().at_least(100.0)) // 文件大小
-                        .column(Column::auto().at_least(80.0)) // 文件格式
-                        .column(Column::auto().at_least(80.0)) // CMYK/RGB
+                        .column(Column::auto().at_least(200.0)) // 文件名
+                        .column(Column::auto().at_least(80.0)) // 像素尺寸
+                        .column(Column::auto().at_least(80.0)) // 物理尺寸
+                        .column(Column::auto().at_least(60.0)) // DPI
+                        .column(Column::auto().at_least(80.0)) // 文件大小
+                        .column(Column::auto().at_least(60.0)) // 文件格式
+                        .column(Column::auto().at_least(60.0)) // CMYK/RGB
                         .header(20.0, |mut header| {
                             header.col(|ui| {
                                 ui.heading("文件名");
@@ -761,54 +801,45 @@ impl eframe::App for ImageToolApp {
                                 // 文件名列
                                 row.col(|ui| {
                                     if self.editing_row == Some(idx) {
-                                        // 编辑模式：显示文本输入框
+                                        // 编辑模式
                                         let response = ui.add(
                                             egui::TextEdit::singleline(&mut self.edit_buffer)
-                                                .desired_width(250.0)
+                                                .desired_width(200.0)
                                                 .frame(true),
                                         );
 
-                                        // 处理编辑完成事件
                                         if response.lost_focus()
                                             && ui.input(|i| i.key_pressed(egui::Key::Enter))
                                         {
-                                            // 按Enter保存
                                             if self.save_editing(&ctx_clone) {
                                                 self.status_message =
                                                     format!("已重命名: {}", self.edit_buffer);
                                             }
                                         } else if response.lost_focus() {
-                                            // 失去焦点时保存
                                             if self.save_editing(&ctx_clone) {
                                                 self.status_message =
                                                     format!("已重命名: {}", self.edit_buffer);
                                             }
                                         }
 
-                                        // 按Esc取消
                                         if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
                                             self.cancel_editing();
                                         }
 
-                                        // 请求焦点
                                         response.request_focus();
                                     } else {
-                                        // 正常模式：显示可点击标签
                                         let label_response = ui
                                             .selectable_label(row_selected, &image_info.file_name);
 
-                                        // 单击选择图片
                                         if label_response.clicked() {
                                             self.selected_image = Some(idx);
                                             self.update_preview(&ctx_clone);
                                         }
 
-                                        // 双击进入编辑模式
                                         if label_response.double_clicked() {
                                             self.start_editing(idx);
                                         }
 
-                                        // 右键菜单：重命名选项
                                         label_response.context_menu(|ui| {
                                             if ui.button("重命名").clicked() {
                                                 self.start_editing(idx);
@@ -851,7 +882,6 @@ impl eframe::App for ImageToolApp {
                                     }
                                 });
 
-                                // 文件格式列
                                 row.col(|ui| {
                                     if image_info.error.is_none() {
                                         let extension = image_info.file_extension();
@@ -866,7 +896,6 @@ impl eframe::App for ImageToolApp {
                                     }
                                 });
 
-                                // CMYK/RGB列
                                 row.col(|ui| {
                                     if image_info.error.is_none() {
                                         ui.label(image_info.color_mode_simple());
@@ -878,26 +907,7 @@ impl eframe::App for ImageToolApp {
                         }
                     });
                 }
-            });
-
-            // 底部状态栏
-            egui::TopBottomPanel::bottom("status_panel")
-                .show_separator_line(false)
-                .min_height(30.0)
-                .show_inside(ui, |ui| {
-                    ui.horizontal(|ui| {
-                        ui.label(&self.status_message);
-
-                        if self.state != AppState::Idle {
-                            ui.with_layout(
-                                egui::Layout::right_to_left(egui::Align::Center),
-                                |ui| {
-                                    ui.spinner();
-                                },
-                            );
-                        }
-                    });
-                });
+        });
 
             // 显示清除确认对话框
             if self.show_clear_dialog {
@@ -937,7 +947,6 @@ impl eframe::App for ImageToolApp {
                         }
                     });
             }
-        });
 
         // 如果正在处理，请求重绘
         if self.state != AppState::Idle {
