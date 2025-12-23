@@ -1,0 +1,35 @@
+{
+  "audioBase": "audio/",
+  "audioPool": [
+    "001.mp3",
+    "002.mp3",
+    "003.mp3",
+    "004.mp3",
+    "005.mp3"
+  ],
+  "pages": {
+    "page1": {
+      "image": "images/page1.svg",
+      "sequence": [0, 1, 2],
+      "buttons": [
+        { "x": 0.2, "y": 0.4, "pos": 0 },
+        { "x": 0.5, "y": 0.6, "pos": 1 },
+        {
+          "x": 0.8,
+          "y": 0.3,
+          "pos": 2,
+          "override": "fix_003.mp3"
+        }
+      ]
+    },
+    "page2": {
+      "image": "images/page2.svg",
+      "sequence": [2, 3, 4],
+      "buttons": [
+        { "x": 0.3, "y": 0.5, "pos": 0 },
+        { "x": 0.6, "y": 0.5, "pos": 1 },
+        { "x": 0.9, "y": 0.5, "pos": 2 }
+      ]
+    }
+  }
+}

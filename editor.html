@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电子书编辑器 - 高级模式</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+        
+        .header .subtitle {
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header-text {
+            flex: 1;
+        }
+        
+        .header-actions {
+            margin-left: 20px;
+        }
+        
+        .play-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            text-decoration: none;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .play-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .play-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .panel {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .panel-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+            color: #444;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #555;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            transition: border 0.2s;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #6a11cb;
+            box-shadow: 0 0 0 3px rgba(106, 17, 203, 0.1);
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(106, 17, 203, 0.3);
+        }
+        
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+        
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .page-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 6px;
+        }
+        
+        .page-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .page-item:hover {
+            background: #f9f9f9;
+        }
+        
+        .page-item.active {
+            background: #eef2ff;
+            border-left: 4px solid #6a11cb;
+        }
+        
+        .page-item:last-child {
+            border-bottom: none;
+        }
+        
+        .button-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 6px;
+        }
+        
+        .button-item {
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .button-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .button-title {
+            font-weight: 500;
+            color: #444;
+        }
+        
+        .button-details {
+            font-size: 0.85rem;
+            color: #666;
+            background: #f0f0f0;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        
+        .coordinate-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        
+        .advanced-section {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 2px dashed #e0e0e0;
+        }
+        
+        .advanced-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .advanced-content {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #eee;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .preview-area {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #fafafa;
+        }
+        
+        .preview-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        
+        .preview-button {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.7);
+            border: 2px solid #6a11cb;
+            transform: translate(-50%, -50%);
+            cursor: move;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: #6a11cb;
+        }
+        
+        .status-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #333;
+            color: white;
+            padding: 12px 20px;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .status-message {
+            color: #4caf50;
+        }
+        
+        .status-error {
+            color: #ff4444;
+        }
+        
+        .icon {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+        
+        .tab-container {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            font-weight: 500;
+            color: #666;
+        }
+        
+        .tab.active {
+            color: #6a11cb;
+            border-bottom-color: #6a11cb;
+            background: #f8f0ff;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .shortcut-hint {
+            font-size: 0.8rem;
+            color: #888;
+            margin-left: 8px;
+        }
+        
+        .btn-with-shortcut {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .preview-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        
+        .preview-area:hover .preview-overlay {
+            opacity: 1;
+        }
+        
+        .preview-instruction {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px 20px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #333;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .preview-instruction div {
+            margin: 5px 0;
+        }
+        
+        .preview-area {
+            cursor: crosshair;
+        }
+        
+        /* 弹窗样式 */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            animation: modalFadeIn 0.3s ease;
+        }
+        
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.3rem;
+            color: #333;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        
+        .modal-close:hover {
+            background: #f5f5f5;
+            color: #333;
+        }
+        
+        .modal-body {
+            padding: 20px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        /* A4比例虚线框样式 */
+        .a4-outline {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            pointer-events: none;
+        }
+        
+        .a4-border {
+            border: 2px dashed rgba(106, 17, 203, 0.5);
+            background: rgba(106, 17, 203, 0.05);
+            box-sizing: border-box;
+        }
+        
+        .a4-label {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(106, 17, 203, 0.8);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+        
+        /* 预览区域样式调整 */
+        .preview-area {
+            cursor: crosshair;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .preview-image {
+            position: relative;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-content">
+                <div class="header-text">
+                    <h1>电子书编辑器</h1>
+                    <div class="subtitle">简单配置模式 + 隐藏高级模式 | 基于您设计的「一次配置 + 可回滚 + 可升级」架构</div>
+                </div>
+                <div class="header-actions">
+                    <a href="index.html" class="play-btn" title="返回播放器">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                        播放测试
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-container">
+            <div class="tab active" data-tab="basic">基础编辑</div>
+            <div class="tab" data-tab="advanced">高级设置</div>
+            <div class="tab" data-tab="preview">实时预览</div>
+        </div>
+        
+        <div class="tab-content active" id="basic-tab">
+            <div class="main-content">
+                <div class="panel">
+                    <h2 class="panel-title">页面管理</h2>
+                    <div class="form-group">
+                        <label class="form-label">当前页面</label>
+                        <div class="page-list" id="page-list">
+                            <!-- 页面列表动态生成 -->
+                        </div>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" id="add-page-btn">
+                            <svg class="icon" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                            添加页面
+                        </button>
+                        <button class="btn btn-secondary" id="remove-page-btn">
+                            <svg class="icon" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                            删除页面
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <h2 class="panel-title">页面设置</h2>
+                    <div class="form-group">
+                        <label class="form-label">页面图片</label>
+                        <input type="file" id="page-image-input" accept="image/*" class="form-control">
+                        
+                        <div class="form-group" style="margin-top: 15px;">
+                            <label class="form-label">图片规格设置</label>
+                            <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <span style="font-weight: bold; color: #6a11cb;">固定A4规格</span>
+                                </div>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <input type="radio" id="portrait-mode" name="orientation" value="portrait" checked>
+                                    <label for="portrait-mode">竖版 (210×297mm)</label>
+                                    <input type="radio" id="landscape-mode" name="orientation" value="landscape">
+                                    <label for="landscape-mode">横版 (297×210mm)</label>
+                                </div>
+                            </div>
+                            <small>图片自动适应A4紫色框，只编辑框内区域</small>
+                        </div>
+                        
+                        <div class="preview-area" id="image-preview">
+                            <!-- A4比例虚线框 -->
+                            <div id="a4-outline" class="a4-outline" style="display: none;">
+                                <div class="a4-border"></div>
+                                <div class="a4-label">A4比例参考框</div>
+                            </div>
+                            
+                            <img id="preview-img" class="preview-image" alt="图片预览">
+                            <div class="preview-overlay" id="preview-overlay">
+                                <div class="preview-instruction">
+                                    <div>📌 点击图片任意位置添加按钮</div>
+                                    <div>🖱️ 拖动按钮调整位置</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">音频序列 (逗号分隔的数字)</label>
+                        <input type="text" id="audio-sequence" class="form-control" placeholder="例如: 0,1,2">
+                        <small>数字对应 audioPool 中的索引 (0-based)</small>
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <h2 class="panel-title">按钮管理</h2>
+                    <div class="form-group">
+                        <div class="button-list" id="button-list">
+                            <!-- 按钮列表动态生成 -->
+                        </div>
+                    </div>
+                    
+                    <!-- 按钮编辑弹窗 -->
+                    <div id="button-edit-modal" class="modal" style="display: none;">
+                        <div class="modal-content" style="max-width: 500px;">
+                            <div class="modal-header">
+                                <h3>编辑按钮 <span id="edit-button-number">1</span></h3>
+                                <button class="modal-close" id="close-edit-modal">&times;</button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-group">
+                                    <label class="form-label">自定义音频文件</label>
+                                    <div style="display: flex; gap: 8px;">
+                                        <input type="text" id="modal-override-audio" class="form-control" placeholder="例如: fix_003.mp3">
+                                        <button type="button" id="modal-browse-audio-btn" class="btn btn-secondary" style="white-space: nowrap;">浏览...</button>
+                                    </div>
+                                    <small>设置此按钮的专属音频，留空则使用页面序列音频。相对于 audio/ 目录。</small>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">按钮位置 (X, Y)</label>
+                                    <div class="coordinate-inputs">
+                                        <input type="number" id="modal-button-x" class="form-control" min="0" max="1" step="0.01" placeholder="X (0-1)">
+                                        <input type="number" id="modal-button-y" class="form-control" min="0" max="1" step="0.01" placeholder="Y (0-1)">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">音频索引 (pos)</label>
+                                    <input type="number" id="modal-button-pos" class="form-control" min="0" placeholder="0">
+                                    <small>对应页面音频序列中的索引位置</small>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="btn btn-secondary" id="cancel-edit-modal">取消</button>
+                                <button class="btn btn-primary" id="save-edit-modal">保存</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+                        <label class="form-label">音频对应序列索引 (0-based)</label>
+                        <input type="number" id="button-pos" class="form-control" min="0" placeholder="0">
+                        <small>该按钮播放当前页面音频序列中第几个音频</small>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-primary" id="add-button-btn">
+                            <svg class="icon" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                            添加按钮
+                        </button>
+                        <button class="btn btn-secondary" id="clear-buttons-btn">
+                            清空按钮
+                        </button>
+                    </div>
+                    
+                    <div class="advanced-section">
+                        <div class="advanced-toggle" id="advanced-toggle">
+                            <svg class="icon" viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+                            显示高级选项
+                        </div>
+                        <div class="advanced-content hidden" id="advanced-content">
+                            <div class="form-group">
+                                <label class="form-label">按钮位置 (X, Y)</label>
+                                <div class="coordinate-inputs">
+                                    <input type="number" id="button-x" class="form-control" min="0" max="1" step="0.01" placeholder="X (0-1)">
+                                    <input type="number" id="button-y" class="form-control" min="0" max="1" step="0.01" placeholder="Y (0-1)">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">自定义音频文件</label>
+                                <div style="display: flex; gap: 8px;">
+                                    <input type="text" id="override-audio" class="form-control" placeholder="例如: fix_003.mp3">
+                                    <button type="button" id="browse-audio-btn" class="btn btn-secondary" style="white-space: nowrap;">浏览...</button>
+                                </div>
+                                <small>设置此按钮的专属音频，留空则使用页面序列音频。相对于 audio/ 目录。</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="advanced-tab">
+            <div class="panel">
+                <h2 class="panel-title">音频池管理</h2>
+                <div class="form-group">
+                    <label class="form-label">音频文件列表 (每行一个文件名)</label>
+                    <textarea id="audio-pool" class="form-control" rows="6" placeholder="例如：
+001.mp3
+002.mp3
+003.mp3"></textarea>
+                    <small>音频文件应放置在 audio/ 目录下</small>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">音频基础路径</label>
+                    <input type="text" id="audio-base" class="form-control" value="audio/">
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2 class="panel-title">JSON 配置</h2>
+                <div class="form-group">
+                    <label class="form-label">完整配置文件</label>
+                    <textarea id="json-editor" class="form-control" rows="12" spellcheck="false"></textarea>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="load-json-btn">从文本框加载</button>
+                    <button class="btn btn-primary" id="save-json-btn">保存到文本框</button>
+                </div>
+                <div class="form-group" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+                    <label class="form-label">文件操作</label>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" id="import-file-btn">
+                            <svg class="icon" viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4v6zm3-10.17L14.17 8H13v6h-2V8H9.83L12 5.83zM5 18h14v2H5z"/></svg>
+                            导入JSON文件
+                        </button>
+                        <button class="btn btn-primary" id="export-file-btn">
+                            <svg class="icon" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                            导出JSON文件
+                        </button>
+                        <button class="btn btn-secondary btn-with-shortcut" id="backup-btn">
+                            <svg class="icon" viewBox="0 0 24 24"><path d="M17 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
+                            创建备份
+                            <span class="shortcut-hint">(Ctrl+B)</span>
+                        </button>
+                    </div>
+                    <div style="margin-top: 10px; font-size: 0.85rem; color: #666;">
+                        <div>📁 导入：从本地文件加载配置</div>
+                        <div>💾 导出：下载配置到本地文件</div>
+                        <div>⏱️ 备份：自动保存当前版本</div>
+                        <div>📦 打包：生成完整部署包（包含所有文件）</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="preview-tab">
+            <div class="panel">
+                <h2 class="panel-title">实时预览</h2>
+                <div class="preview-area" id="live-preview">
+                    <!-- 预览将在这里显示 -->
+                </div>
+                <div class="btn-group" style="margin-top: 15px;">
+                    <button class="btn btn-primary" id="test-play-btn">测试播放当前按钮</button>
+                    <button class="btn btn-secondary" id="reset-preview-btn">重置预览</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="panel" style="margin-top: 20px;">
+            <div class="btn-group">
+                <button class="btn btn-primary btn-with-shortcut" id="save-btn">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
+                    保存配置
+                    <span class="shortcut-hint">(Ctrl+S)</span>
+                </button>
+                <button class="btn btn-secondary btn-with-shortcut" id="load-btn">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                    重新加载
+                    <span class="shortcut-hint">(Ctrl+L)</span>
+                </button>
+                <button class="btn btn-secondary btn-with-shortcut" id="export-btn">
+                    导出配置
+                    <span class="shortcut-hint">(Ctrl+E)</span>
+                </button>
+                <a href="index.html" target="_blank" class="btn btn-primary">
+                    打开播放器测试
+                </a>
+                <button class="btn btn-primary btn-with-shortcut" id="package-btn" title="生成完整ZIP包，包含所有文件，方便发给别人或部署到iPad">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg>
+                    打包部署包
+                    <span class="shortcut-hint">(Ctrl+P)</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="status-bar">
+        <div id="status-message" class="status-message">就绪</div>
+        <div id="error-message" class="status-error"></div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="js/player.js"></script>
+    <script src="js/editor.js"></script>
+    <script src="js/packager.js"></script>
+</body>
+</html>

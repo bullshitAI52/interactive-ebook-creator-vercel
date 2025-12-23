@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+  <rect width="800" height="600" fill="#ff6b6b"/>
+  <text x="400" y="250" font-family="Arial, sans-serif" font-size="48" font-weight="bold" text-anchor="middle" fill="white">第 1 页</text>
+  <text x="400" y="320" font-family="Arial, sans-serif" font-size="24" text-anchor="middle" fill="white">点击按钮播放音频</text>
+  <circle cx="160" cy="240" r="30" fill="rgba(255,255,255,0.5)" stroke="black" stroke-width="2"/>
+  <circle cx="400" cy="360" r="30" fill="rgba(255,255,255,0.5)" stroke="black" stroke-width="2"/>
+  <circle cx="640" cy="180" r="30" fill="rgba(255,215,0,0.7)" stroke="#ff9800" stroke-width="3"/>
+  <text x="160" y="245" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" fill="black">按钮 1</text>
+  <text x="400" y="365" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" fill="black">按钮 2</text>
+  <text x="640" y="185" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" fill="black">按钮 3 (覆盖)</text>
+</svg>
