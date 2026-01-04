@@ -7,6 +7,12 @@ class BookEditor {
     this.autoSaveTimer = null;
     this.statusTimer = null;
 
+    // 媒体文件缓存（用于本地预览）
+    this.blobRegistry = {
+      images: new Map(),
+      audio: new Map()
+    };
+
     // 初始化元素
     this.initElements();
     this.bindEvents();
@@ -246,9 +252,7 @@ class BookEditor {
       if (localData) {
         try {
           const parsed = JSON.parse(localData);
-          // 简单比对一下，如果本地有且用户确认，则使用。这里简单化直接加载，或者给个提示
-          // 为了不打扰用户，这里只在 console 提示
-          console.log('Local autosave available. Use localStorage.getItem("ebook_autosave") to retrieve if needed.');
+          console.log('Local autosave available.');
         } catch (e) { }
       }
 
@@ -306,13 +310,15 @@ class BookEditor {
     }
     this.updateOrientationView(orientation);
 
-    if (page.image) {
-      this.previewImg.src = page.image;
-      this.previewImg.style.display = 'block';
+    // 更新图片：先检查 Blob 缓存，再用原始路径
+    const imageName = page.image;
+    if (this.blobRegistry.images.has(imageName)) {
+      this.previewImg.src = this.blobRegistry.images.get(imageName);
     } else {
-      this.previewImg.style.display = 'none';
-      this.previewImg.src = '';
+      this.previewImg.src = imageName || '';
     }
+
+    this.previewImg.style.display = imageName ? 'block' : 'none';
 
     this.audioSequenceInput.value = (page.sequence || []).join(', ');
 
@@ -340,14 +346,17 @@ class BookEditor {
     const file = e.target.files[0];
     if (!file || !this.currentPageId) return;
 
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      this.previewImg.src = evt.target.result;
-      this.previewImg.style.display = 'block';
-      this.book.pages[this.currentPageId].image = `images/${file.name}`;
-      this.showStatus('图片已更新 (仅前端预览)');
-    };
-    reader.readAsDataURL(file);
+    const blobUrl = URL.createObjectURL(file);
+    // 使用文件名作为 key
+    const storeName = `images/${file.name}`;
+    this.blobRegistry.images.set(storeName, blobUrl);
+
+    this.previewImg.src = blobUrl;
+    this.previewImg.style.display = 'block';
+
+    // 保存相对路径到 JSON (假设用户最终会把文件放到 images 目录)
+    this.book.pages[this.currentPageId].image = storeName;
+    this.showStatus('图片已更新 (本地预览模式)');
   }
 
   updatePageSequence() {
@@ -373,7 +382,10 @@ class BookEditor {
       el.style.transform = 'translate(-50%, -50%)';
       el.dataset.index = index;
       el.textContent = index + 1;
-      el.title = `Index: ${index}\nPos: ${btn.pos}`;
+
+      let tooltip = `Index: ${index}\nPos: ${btn.pos}`;
+      if (btn.override) tooltip += `\nAudio: ${btn.override}`;
+      el.title = tooltip;
 
       el.oncontextmenu = (e) => {
         e.preventDefault();
@@ -398,11 +410,16 @@ class BookEditor {
       const el = document.createElement('div');
       el.className = `list-button-item ${index === this.currentButtonIndex ? 'active' : ''}`;
       el.dataset.index = index;
-      // 复原：添加 Play, Up, Down 按钮
+
+      let audioLabel = `Pos: ${btn.pos}`;
+      if (btn.override) {
+        audioLabel = `<span style="color:var(--primary-color)">Audio: ${btn.override}</span>`;
+      }
+
       el.innerHTML = `
              <div style="flex:1;">
                 <strong>#${index + 1}</strong>
-                <span style="color:#666; font-size:0.85em; margin-left:8px;">Pos: ${btn.pos} ${btn.override ? '(Override)' : ''}</span>
+                <span style="color:#666; font-size:0.85em; margin-left:8px;">${audioLabel}</span>
              </div>
              <div style="display:flex; gap:4px;">
                 <button class="btn btn-sm btn-secondary list-play" title="播放测试">Play</button>
@@ -421,7 +438,6 @@ class BookEditor {
     const newIndex = index + direction;
 
     if (newIndex >= 0 && newIndex < page.buttons.length) {
-      // Swap
       const temp = page.buttons[index];
       page.buttons[index] = page.buttons[newIndex];
       page.buttons[newIndex] = temp;
@@ -439,20 +455,33 @@ class BookEditor {
     const btn = page.buttons[index];
 
     let audioSrc = '';
+    let isBlob = false;
     const audioBase = this.book.audioBase || 'audio/';
     const base = audioBase.endsWith('/') ? audioBase : audioBase + '/';
 
     if (btn.override) {
-      if (btn.override.match(/^https?:\/\//) || btn.override.startsWith('/')) {
-        audioSrc = btn.override;
+      // 优先检查 Blob 缓存
+      if (this.blobRegistry.audio.has(btn.override)) {
+        audioSrc = this.blobRegistry.audio.get(btn.override);
+        isBlob = true;
       } else {
-        audioSrc = base + btn.override;
+        if (btn.override.match(/^https?:\/\//) || btn.override.startsWith('/')) {
+          audioSrc = btn.override;
+        } else {
+          audioSrc = base + btn.override;
+        }
       }
     } else {
       // Sequence logic
       const audioIndex = page.sequence[btn.pos];
       if (this.book.audioPool && this.book.audioPool[audioIndex]) {
-        audioSrc = base + this.book.audioPool[audioIndex];
+        const filename = this.book.audioPool[audioIndex];
+        if (this.blobRegistry.audio.has(filename)) {
+          audioSrc = this.blobRegistry.audio.get(filename);
+          isBlob = true;
+        } else {
+          audioSrc = base + filename;
+        }
       }
     }
 
@@ -461,7 +490,7 @@ class BookEditor {
       audio.play().catch(e => {
         this.showError(`播放失败: ${e.message}`);
       });
-      this.showStatus(`Try playing: ${audioSrc}`);
+      this.showStatus(isBlob ? `Playing local: ${btn.override || 'sequence'}` : `Try playing: ${audioSrc}`);
     } else {
       this.showError('未找到对应的音频文件');
     }
@@ -471,9 +500,12 @@ class BookEditor {
     if (!this.currentPageId) return;
     const page = this.book.pages[this.currentPageId];
     let nextPos = 0;
-    if (page.sequence && page.sequence.length > 0) {
-      nextPos = page.buttons.length % page.sequence.length;
-    }
+    // 默认 pos 指向当前按钮 index
+    nextPos = page.buttons.length;
+    // 或者是根据 sequence 循环？
+    // 原逻辑: nextPos = page.buttons.length % page.sequence.length;
+    // 用户说“按钮数字对应音频”，可能意思是 Button 1 -> Audio 1
+    // 所以默认 pos = index 是最合理的
 
     page.buttons.push({
       x: 0.5,
@@ -569,7 +601,12 @@ class BookEditor {
     input.accept = 'audio/*';
     input.onchange = (e) => {
       if (e.target.files[0]) {
-        this.modalOverrideAudio.value = e.target.files[0].name;
+        const file = e.target.files[0];
+        this.modalOverrideAudio.value = file.name;
+
+        // 缓存 Blob 以便立即从本地播放
+        this.blobRegistry.audio.set(file.name, URL.createObjectURL(file));
+        this.showStatus('音频已选择 (本地预览模式)');
       }
     };
     input.click();
