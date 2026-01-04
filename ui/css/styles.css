@@ -564,3 +564,110 @@ body {
     fill: currentColor;
     vertical-align: middle;
 }
+
+/* =========================================
+   阅读模式 (Reading Mode / Zen Mode)
+   ========================================= */
+
+body.reading-mode .header,
+body.reading-mode .controls,
+body.reading-mode .status-bar,
+body.reading-mode .edit-btn,
+body.reading-mode #help-modal {
+    display: none !important;
+}
+
+body.reading-mode {
+    background: #1a1a1a;
+    /* 深色背景强调内容 */
+}
+
+body.reading-mode .main-container {
+    padding: 0;
+    margin: 0;
+    background: #1a1a1a;
+}
+
+body.reading-mode .book-view {
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+body.reading-mode .page-image-container {
+    padding: 0;
+    background: transparent;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 核心逻辑：自适应缩放 */
+body.reading-mode .page-content-wrapper {
+    margin: auto;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s ease;
+}
+
+/* 情况A: 竖版页面 (默认) - Ratio ~0.706 */
+body.reading-mode .page-content-wrapper:not(.landscape) {
+    /* 默认假设屏幕较宽（桌面），以高度为基准 */
+    height: 100vh;
+    width: auto;
+    aspect-ratio: 595 / 842;
+}
+
+/* 如果屏幕比页面更窄 (手机竖屏) -> 以宽度为基准 */
+@media (max-aspect-ratio: 595/842) {
+    body.reading-mode .page-content-wrapper:not(.landscape) {
+        width: 100vw;
+        height: auto;
+    }
+}
+
+/* 情况B: 横版页面 (.landscape) - Ratio ~1.415 */
+body.reading-mode .page-content-wrapper.landscape {
+    /* 默认假设屏幕较窄，以宽度为基准 */
+    width: 100vw;
+    height: auto;
+    aspect-ratio: 842 / 595;
+}
+
+/* 如果屏幕比页面更宽 (桌面显示横版) -> 以高度为基准 */
+@media (min-aspect-ratio: 842/595) {
+    body.reading-mode .page-content-wrapper.landscape {
+        height: 100vh;
+        width: auto;
+    }
+}
+
+/* Toast 提示样式 */
+.toast-message {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 2000;
+    pointer-events: none;
+}
+
+.toast-message.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}

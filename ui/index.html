@@ -535,6 +535,13 @@
                     </svg>
                     编辑
                 </a>
+                <button id="reading-mode-btn" class="edit-btn" title="阅读模式 (ESC退出)" style="margin-left: 8px;">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
+                    </svg>
+                    阅读模式
+                </button>
             </div>
         </div>
     </div>
@@ -677,6 +684,51 @@
         helpBtn.addEventListener('click', showHelpModal);
         closeHelpBtn.addEventListener('click', hideHelpModal);
         gotItBtn.addEventListener('click', hideHelpModal);
+
+        // 阅读模式功能
+        const readingModeBtn = document.getElementById('reading-mode-btn');
+
+        function toggleReadingMode() {
+            document.body.classList.toggle('reading-mode');
+
+            // 提示用户如何退出
+            if (document.body.classList.contains('reading-mode')) {
+                showToast('按 ESC 键退出阅读模式');
+            }
+        }
+
+        function exitReadingMode() {
+            document.body.classList.remove('reading-mode');
+        }
+
+        readingModeBtn.addEventListener('click', toggleReadingMode);
+
+        // ESC 键退出阅读模式
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && document.body.classList.contains('reading-mode')) {
+                exitReadingMode();
+            }
+        });
+
+        // 简单的 Toast 提示
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast-message';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            // 动画
+            requestAnimationFrame(() => {
+                toast.classList.add('show');
+            });
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 300);
+            }, 3000);
+        }
 
         // 配置文件上传加载功能
         const openConfigBtn = document.getElementById('open-config-btn');
