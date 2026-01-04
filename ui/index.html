@@ -10,6 +10,7 @@
     <!-- 外部样式表 -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/dark-theme.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
     <style>
         * {
@@ -509,7 +510,7 @@
                     </svg>
                     打开书
                 </button>
-                <input type="file" id="config-upload-input" accept=".json" style="display: none;">
+                <input type="file" id="config-upload-input" accept=".json,.zip" style="display: none;">
 
                 <button id="theme-toggle-btn" class="edit-btn" title="切换明暗主题 (T)"
                     style="border: none; cursor: pointer; margin-left: 8px;">
@@ -688,50 +689,120 @@
         async function handleConfigLoad(file) {
             if (!file) return;
 
-            // 简单的格式检查
-            if (file.type !== 'application/json' && !file.name.endsWith('.json')) {
-                alert('请选择 .json 格式的配置文件');
+            // 格式检查
+            if (!file.name.endsWith('.json') && !file.name.endsWith('.zip')) {
+                alert('请选择 .json 或 .zip 格式的文件');
                 return;
             }
 
+            // 处理 ZIP
+            if (file.name.endsWith('.zip')) {
+                if (typeof JSZip === 'undefined') {
+                    alert('JSZip 库未加载，请检查网络或刷新页面');
+                    return;
+                }
+
+                const loading = document.getElementById('loading');
+                if (loading) {
+                    loading.style.display = 'flex';
+                    loading.querySelector('div:last-child').textContent = '正在解压资源...';
+                }
+
+                try {
+                    const zip = await new JSZip().loadAsync(file);
+
+                    // 1. 读取 book.json
+                    const configCtx = await zip.file("book.json").async("text");
+                    const config = JSON.parse(configCtx);
+
+                    if (!config.pages) throw new Error('无效的配置文件：缺少 pages 字段');
+
+                    // 2. 处理资源 (Images & Audio) -> Blob URLs
+                    const assetMap = new Map(); // path -> blobUrl
+                    const entries = [];
+                    zip.forEach((relativePath, zipEntry) => {
+                        if (!zipEntry.dir) entries.push({ path: relativePath, entry: zipEntry });
+                    });
+
+                    // 并行解压
+                    await Promise.all(entries.map(async (item) => {
+                        const blob = await item.entry.async("blob");
+                        const blobUrl = URL.createObjectURL(blob);
+                        assetMap.set(item.path, blobUrl);
+                    }));
+
+                    // 3. 更新 Config 中的 Image 引用
+                    Object.keys(config.pages).forEach(pageId => {
+                        const page = config.pages[pageId];
+                        // 尝试匹配 images/filename
+                        if (page.image && assetMap.has(page.image)) {
+                            page.image = assetMap.get(page.image);
+                        } else {
+                            // 尝试模糊匹配，防止路径分隔符问题
+                            // (暂不处理，假设 zip 结构标准)
+                        }
+                    });
+
+                    // 4. 更新 Player 的 Audio Cache
+                    // Player 默认拼接：audioBase + filename
+                    // 我们把 assetMap 中的所有 asset 都塞给 player cache
+                    // 这样 player.playMedia(src) 查 existing cache 时就能找到
+                    if (window.player) {
+                        // 清理旧缓存 (如果需要? 稍微激进，但 ZIP 是一次性加载)
+                        // window.player.audioCache.clear(); 
+                        // 暂时不 clear，允许混合使用
+                        assetMap.forEach((url, path) => {
+                            window.player.audioCache.set(path, url);
+                        });
+                    }
+
+                    // 5. 加载 Config
+                    loadConfigToPlayer(config, file.name);
+
+                } catch (err) {
+                    alert('无法读取 ZIP 文件: ' + err.message);
+                    console.error(err);
+                } finally {
+                    if (loading) loading.style.display = 'none';
+                }
+                return;
+            }
+
+            // 处理 JSON (原有逻辑)
             const reader = new FileReader();
             reader.onload = async (e) => {
                 try {
                     const config = JSON.parse(e.target.result);
-                    // 验证基本结构
-                    if (!config.pages) {
-                        throw new Error('无效的配置文件：缺少 pages 字段');
-                    }
-
-                    if (window.player) {
-                        window.player.stop(); // 停止当前播放
-                        window.player.book = config;
-                        // 重新初始化页面列表
-                        const pageIds = window.player.getPageIds();
-                        const totalPagesDisplay = document.getElementById('total-pages-display');
-                        const statusText = document.getElementById('status-text');
-
-                        totalPagesDisplay.textContent = pageIds.length;
-
-                        // 这里通过全局访问有点hack，但在简单应用中可行
-                        // 更好的方式是触发一个自定义事件或者由 player 自行管理
-                        // 我们这里直接调用 showPage(0)
-                        // 需要获取 context，这里利用闭包或重新获取
-                        // 简单处理：更新全局变量并刷新
-                        window.location.reload_pending = false; // 标记
-
-                        // 由于 showPage 是定义在 DOMContentLoaded 里的闭包函数，无法直接外部调用
-                        // 我们触发一个自定义事件
-                        const event = new CustomEvent('book-loaded', { detail: config });
-                        document.dispatchEvent(event);
-
-                        statusText.textContent = `已加载: ${file.name}`;
-                    }
+                    loadConfigToPlayer(config, file.name);
                 } catch (err) {
                     alert('无法加载配置文件: ' + err.message);
                 }
             };
             reader.readAsText(file);
+        }
+
+        function loadConfigToPlayer(config, fileName) {
+            // 验证基本结构
+            if (!config.pages) {
+                throw new Error('无效的配置文件：缺少 pages 字段');
+            }
+
+            if (window.player) {
+                window.player.stop(); // 停止当前播放
+                window.player.book = config;
+                // 重新初始化页面列表
+                const pageIds = window.player.getPageIds();
+                const totalPagesDisplay = document.getElementById('total-pages-display');
+                const statusText = document.getElementById('status-text');
+
+                if (totalPagesDisplay) totalPagesDisplay.textContent = pageIds.length;
+
+                // 触发自定义事件
+                const event = new CustomEvent('book-loaded', { detail: config });
+                document.dispatchEvent(event);
+
+                if (statusText) statusText.textContent = `已加载: ${fileName}`;
+            }
         }
 
         configUploadInput.addEventListener('change', (e) => {

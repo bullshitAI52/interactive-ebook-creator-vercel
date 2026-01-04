@@ -784,37 +784,42 @@ class BookEditor {
 
     // 3. Add Images
     // Iterate through used images in book.json
-    Object.values(this.book.pages).forEach(page => {
+    const pageValues = Object.values(this.book.pages);
+    for (const page of pageValues) {
       if (page.image && typeof page.image === 'string') {
-        // Expected format: "images/filename.jpg"
-        // Only add if explicitly in fileRegistry (uploaded in this session)
-        if (this.fileRegistry.images.has(page.image)) {
-          const file = this.fileRegistry.images.get(page.image);
-          imgFolder.file(file.name, file);
-          addedCount++;
-        }
+        const filePath = page.image;
+        const zipPath = `images/${filePath.split('/').pop()}`; // Normalize to flattened images folder if needed, or keep path
+        // Current logic assumes flattened images folder in zip
+
+        await this.addFileToZip(zip, filePath, zipPath, 'images');
+        addedCount++;
       }
-    });
+    }
 
     // 4. Add Audio
     // Iterate pages for button overrides
-    Object.values(this.book.pages).forEach(page => {
-      (page.buttons || []).forEach(btn => {
-        if (btn.override && this.fileRegistry.audio.has(btn.override)) {
-          const file = this.fileRegistry.audio.get(btn.override);
-          audioFolder.file(file.name, file);
-          addedCount++;
+    for (const page of pageValues) {
+      if (page.buttons) {
+        for (const btn of page.buttons) {
+          if (btn.override) {
+            const filePath = btn.override;
+            const zipPath = `audio/${filePath.split('/').pop()}`;
+            await this.addFileToZip(zip, filePath, zipPath, 'audio');
+            addedCount++;
+          }
         }
-      });
-    });
-    // Iterate audio pool (if any)
-    (this.book.audioPool || []).forEach(filename => {
-      if (this.fileRegistry.audio.has(filename)) {
-        const file = this.fileRegistry.audio.get(filename);
-        audioFolder.file(file.name, file);
-        addedCount++;
       }
-    });
+    }
+
+    // Iterate audio pool (if any)
+    const audioPool = this.book.audioPool || [];
+    const audioBase = this.book.audioBase || 'audio/';
+    for (const filename of audioPool) {
+      const filePath = (audioBase.endsWith('/') ? audioBase : audioBase + '/') + filename;
+      const zipPath = `audio/${filename}`;
+      await this.addFileToZip(zip, filePath, zipPath, 'audio');
+      addedCount++;
+    }
 
     // 5. Generate Info.txt
     zip.file("使用说明.txt", "请解压本压缩包内容到您的项目文件夹中，覆盖对应的 book.json, images 和 audio 文件夹。\n\n" +
@@ -869,9 +874,35 @@ class BookEditor {
         } catch (err) {
           this.showError('JSON解析失败');
         }
+
       };
       reader.readAsText(file);
     };
     input.click();
+  }
+  // Helper to add file to zip (Registry or Fetch)
+  async addFileToZip(zip, filePath, zipPath, type) {
+    if (!filePath) return;
+
+    // Check registry first
+    if (type === 'images' && this.fileRegistry.images.has(filePath)) {
+      zip.file(zipPath, this.fileRegistry.images.get(filePath));
+      return;
+    }
+    if (type === 'audio' && this.fileRegistry.audio.has(filePath)) {
+      zip.file(zipPath, this.fileRegistry.audio.get(filePath));
+      return;
+    }
+
+    // Try Fetch
+    try {
+      const response = await fetch(filePath);
+      if (response.ok) {
+        const blob = await response.blob();
+        zip.file(zipPath, blob);
+      }
+    } catch (e) {
+      console.warn(`Failed to export file: ${filePath}`, e);
+    }
   }
 }
