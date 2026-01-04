@@ -632,9 +632,8 @@ body {
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
-/* 呼吸动画 (涟漪) - 共享给 .canvas-button */
-.page-button::before,
-.canvas-button::before {
+/* 呼吸动画 (涟漪) */
+.page-button::before {
     content: '';
     position: absolute;
     top: 50%;
@@ -726,6 +725,42 @@ body {
     z-index: 20;
     transition: transform 0.2s, box-shadow 0.2s;
     user-select: none;
+}
+
+/* 编辑器核心：播放三角形 (和播放器一致) */
+.canvas-button::after {
+    content: '';
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 8px 0 8px 14px;
+    border-color: transparent transparent transparent white;
+    margin-left: 4px;
+    /* 视觉居中 */
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+/* 编辑器特有：数字角标 */
+.canvas-button::before {
+    content: attr(data-display-index);
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: var(--primary-color);
+    /* 紫色背景 */
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 2;
+    /* 确保在最上层 */
 }
 
 .canvas-button:hover {
