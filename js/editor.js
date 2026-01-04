@@ -560,37 +560,57 @@ class BookEditor {
 
   handleButtonDragStart(e) {
     e.preventDefault();
-    const btnEl = e.target;
+    // 确保获取的是按钮元素
+    const btnEl = e.target.closest('.canvas-button');
+    if (!btnEl) return;
+
     const index = parseInt(btnEl.dataset.index);
 
     this.currentButtonIndex = index;
-    this.renderCanvasButtons();
-    this.renderListButtons();
+
+    // 注意：这里重新渲染会导致 btnEl 引用断裂（被移除并重新创建）
+    // 所以我们暂时只高亮不重绘，或者在拖拽结束后重绘
+    // 但 currentButtonIndex 改变需要 visual 反馈
+    // 简单起见：手动添加 active 类，不调用 renderCanvasButtons
+    const allBtns = this.imagePreview.querySelectorAll('.canvas-button');
+    allBtns.forEach(b => b.classList.remove('active'));
+    btnEl.classList.add('active');
+    this.renderListButtons(); // List 可更新
 
     const rect = this.imagePreview.getBoundingClientRect();
+    const startClientX = e.clientX;
+    const startClientY = e.clientY;
+
+    // 获取当前按钮的初始百分比位置
+    const page = this.book.pages[this.currentPageId];
+    if (!page || !page.buttons[index]) return;
+
+    const initialBtnX = page.buttons[index].x;
+    const initialBtnY = page.buttons[index].y;
 
     const onMouseMove = (moveEvent) => {
-      let clientX = moveEvent.clientX;
-      let clientY = moveEvent.clientY;
-      let x = (clientX - rect.left) / rect.width;
-      let y = (clientY - rect.top) / rect.height;
+      const deltaX = (moveEvent.clientX - startClientX) / rect.width;
+      const deltaY = (moveEvent.clientY - startClientY) / rect.height;
 
-      x = Math.max(0, Math.min(1, x));
-      y = Math.max(0, Math.min(1, y));
+      let newX = initialBtnX + deltaX;
+      let newY = initialBtnY + deltaY;
 
-      btnEl.style.left = `${x * 100}%`;
-      btnEl.style.top = `${y * 100}%`;
+      newX = Math.max(0, Math.min(1, newX));
+      newY = Math.max(0, Math.min(1, newY));
 
-      const page = this.book.pages[this.currentPageId];
-      if (page && page.buttons[index]) {
-        page.buttons[index].x = x;
-        page.buttons[index].y = y;
-      }
+      btnEl.style.left = `${newX * 100}%`;
+      btnEl.style.top = `${newY * 100}%`;
+
+      // 实时更新数据
+      page.buttons[index].x = newX;
+      page.buttons[index].y = newY;
     };
 
     const onMouseUp = () => {
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
+      // 拖拽结束，统一刷新一次以确保状态一致
+      this.renderCanvasButtons();
     };
 
     document.addEventListener('mousemove', onMouseMove);
