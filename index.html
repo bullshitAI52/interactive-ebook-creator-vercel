@@ -510,6 +510,12 @@
                     </svg>
                     上一页
                 </button>
+                <button id="auto-play-btn" class="btn btn-secondary" title="自动朗读当前页并翻页">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M8 5v14l11-7z" />
+                    </svg>
+                    自动朗读
+                </button>
                 <button id="next-btn" class="btn btn-primary">
                     下一页
                     <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor">
@@ -747,12 +753,83 @@
                 }
             }, 500);
 
+            const autoPlayBtn = document.getElementById('auto-play-btn');
+
+            let isAutoPlaying = false;
+
+            // 停止自动播放辅助函数
+            function stopAutoPlay() {
+                if (!isAutoPlaying) return;
+                isAutoPlaying = false;
+                // 恢复UI状态
+                autoPlayBtn.innerHTML = `
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor">
+                         <path d="M8 5v14l11-7z"/>
+                    </svg>
+                    自动朗读`;
+                autoPlayBtn.classList.remove('btn-primary');
+                autoPlayBtn.classList.add('btn-secondary');
+                player.stop();
+            }
+
+            // 自动播放按钮逻辑
+            if (autoPlayBtn) {
+                autoPlayBtn.addEventListener('click', async () => {
+                    if (isAutoPlaying) {
+                        stopAutoPlay();
+                        return;
+                    }
+
+                    // 开始自动播放
+                    isAutoPlaying = true;
+                    autoPlayBtn.innerHTML = `
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M6 6h12v12H6z"/>
+                        </svg>
+                        停止朗读`;
+                    autoPlayBtn.classList.remove('btn-secondary');
+                    autoPlayBtn.classList.add('btn-primary');
+
+                    // 播放循环
+                    while (isAutoPlaying) {
+                        try {
+                            updateStatus('正在自动朗读...', true);
+                            await player.playPageSequence();
+
+                            if (!isAutoPlaying) break; // 中途停止
+
+                            // 读完当前页，等待一小会儿
+                            await new Promise(r => setTimeout(r, 1000));
+
+                            if (!isAutoPlaying) break;
+
+                            // 翻页
+                            if (currentPageIndex < pageIds.length - 1) {
+                                nextBtn.click(); // 此操作会触发 showPage -> 初始化新页面
+                                // 等待页面加载完成（简单延时，或者依赖 showPage 的同步性）
+                                await new Promise(r => setTimeout(r, 1000));
+                            } else {
+                                stopAutoPlay();
+                                alert('已读完最后一页');
+                                break;
+                            }
+                        } catch (e) {
+                            console.error('Auto play error:', e);
+                            stopAutoPlay();
+                            break;
+                        }
+                    }
+                });
+            }
+
             // 按钮事件
             prevBtn.addEventListener('click', () => {
+                stopAutoPlay(); // 手动操作停止自动播放
                 showPage(currentPageIndex - 1);
             });
 
             nextBtn.addEventListener('click', () => {
+                stopAutoPlay(); // 手动操作停止自动播放
                 showPage(currentPageIndex + 1);
             });
 
