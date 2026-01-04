@@ -632,8 +632,9 @@ body {
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
-/* 呼吸动画 (涟漪) */
-.page-button::before {
+/* 呼吸动画 (涟漪) - 共享给 .canvas-button */
+.page-button::before,
+.canvas-button::before {
     content: '';
     position: absolute;
     top: 50%;
@@ -665,7 +666,8 @@ body {
 }
 
 /* 激活状态 */
-.page-button.active {
+.page-button.active,
+.canvas-button.active {
     background: linear-gradient(135deg, #ff9800, #ff5722) !important;
     border-color: #ffcc80 !important;
     animation: pulse-active 1.5s infinite;
@@ -692,13 +694,52 @@ body {
     }
 }
 
-/* B. 编辑器拖拽点 (保留原有，或者如果需要也可更新，但保持简单即可) */
+/* B. 编辑器拖拽点 (Editor Button) */
+/* 继承大部分 Page Button 的美学，但保留编辑功能 */
 .canvas-button {
-    /* 复用一部分基础样式，但增加可拖拽感 */
-    width: 36px;
-    height: 36px;
-    /* ...原有逻辑稍微保留，这里只是确保不覆盖或产生冲突 */
-    /* 保持 editor.html/styles.css 里定义的 .canvas-button 逻辑不变 */
+    position: absolute;
+    width: 48px;
+    /* 增大尺寸以匹配 Page Button */
+    height: 48px;
+    border-radius: 50%;
+    /* 玻璃拟态 复用 */
+    background: rgba(255, 255, 255, 0.35);
+    /* 稍微不透明一点以便看清文字 */
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* 字体样式 - 用于显示序号 */
+    font-weight: 700;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    font-size: 1.1rem;
+
+    cursor: move;
+    /* 保持拖拽手势 */
+    z-index: 20;
+    transition: transform 0.2s, box-shadow 0.2s;
+    user-select: none;
+}
+
+.canvas-button:hover {
+    transform: translate(-50%, -50%) scale(1.15);
+    box-shadow: 0 6px 15px rgba(106, 17, 203, 0.3);
+    border-color: white;
+    background: rgba(255, 255, 255, 0.5);
+}
+
+/* 选中编辑状态 */
+.canvas-button.active {
+    background: linear-gradient(135deg, #6a11cb, #2575fc) !important;
+    border-color: white !important;
+    color: white !important;
 }
 
 /* =========================================
