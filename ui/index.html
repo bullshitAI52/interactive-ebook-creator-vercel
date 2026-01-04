@@ -939,6 +939,14 @@
                 // 显示第一页
                 showPage(0);
 
+                // 默认自动开启阅读模式
+                // 延迟一点以确保渲染就绪
+                setTimeout(() => {
+                    if (!document.body.classList.contains('reading-mode')) {
+                        toggleReadingMode();
+                    }
+                }, 500);
+
                 // 隐藏加载界面
                 loading.style.display = 'none';
 
@@ -1176,10 +1184,83 @@
                     case 'Escape':
                         if (helpModal.style.display !== 'none') {
                             hideHelpModal();
+                        } else if (document.body.classList.contains('reading-mode')) {
+                            // 优先退出阅读模式
+                            exitReadingMode();
                         } else if (document.fullscreenElement) {
                             document.exitFullscreen();
                         }
                         break;
+                }
+            });
+
+            // 触摸滑动支持 (Swipe Support)
+            let touchStartX = 0;
+            let touchEndX = 0;
+            const minSwipeDistance = 50; // 最小滑动距离
+
+            document.body.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+            }, { passive: true });
+
+            document.body.addEventListener('touchend', (e) => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            }, { passive: true });
+
+            function handleSwipe() {
+                const distance = touchEndX - touchStartX;
+
+                // 确保滑动距离足够
+                if (Math.abs(distance) < minSwipeDistance) return;
+
+                if (distance > 0) {
+                    // 向右滑动 -> 上一页
+                    if (!prevBtn.disabled) {
+                        prevBtn.click();
+                    }
+                } else {
+                    // 向左滑动 -> 下一页
+                    if (!nextBtn.disabled) {
+                        nextBtn.click();
+                    }
+                }
+            }
+
+            // 点击翻页支持 (Click Navigation for Reading Mode)
+            // 左边 30% -> 上一页
+            // 右边 30% -> 下一页
+            // 中间 -> 显示/隐藏帮助或不做处理 (根据 "No other buttons" 需求，暂不处理中间，或者中间可以用来显示 Toast)
+            document.body.addEventListener('click', (e) => {
+                // 仅在阅读模式下生效
+                if (!document.body.classList.contains('reading-mode')) return;
+
+                // 忽略特定的交互元素
+                if (e.target.closest('.page-button') ||
+                    e.target.closest('.controls') || // 理论上 hidden
+                    e.target.closest('.modal') ||
+                    e.target.id === 'reading-mode-btn') {
+                    return;
+                }
+
+                const width = window.innerWidth;
+                const x = e.clientX;
+
+                // 左侧 30%
+                if (x < width * 0.3) {
+                    if (!prevBtn.disabled) {
+                        prevBtn.click();
+                        // 反馈
+                        showToast('上一页');
+                    }
+                }
+                // 右侧 30%
+                else if (x > width * 0.7) {
+                    if (!nextBtn.disabled) {
+                        nextBtn.click();
+                        // 反馈
+                        showToast('下一页');
+                    }
                 }
             });
 
