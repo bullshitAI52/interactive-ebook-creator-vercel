@@ -44,6 +44,8 @@ class BookEditor {
     this.pageCountBadge = document.getElementById('page-count-badge');
     this.addPageBtn = document.getElementById('add-page-btn');
     this.removePageBtn = document.getElementById('remove-page-btn');
+    this.batchAddBtn = document.getElementById('batch-add-btn');
+    this.batchImageInput = document.getElementById('batch-image-input');
 
     // 工具栏
     this.currentPageTitle = document.getElementById('current-page-title');
@@ -117,6 +119,14 @@ class BookEditor {
     // 页面操作
     this.addPageBtn.addEventListener('click', () => this.addPage());
     this.removePageBtn.addEventListener('click', () => this.removeCurrentPage());
+
+    // 批量导入
+    if (this.batchAddBtn) {
+      this.batchAddBtn.addEventListener('click', () => this.batchImageInput.click());
+    }
+    if (this.batchImageInput) {
+      this.batchImageInput.addEventListener('change', (e) => this.handleBatchUpload(e));
+    }
 
     // 方向切换
     this.portraitRadio.addEventListener('change', () => this.updateOrientation());
@@ -398,6 +408,47 @@ class BookEditor {
     // 保存相对路径到 JSON
     this.book.pages[this.currentPageId].image = storeName;
     this.showStatus('图片已更新 (本地预览模式)');
+  }
+
+  handleBatchUpload(e) {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    // Sort files by name to ensure order
+    files.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+
+    let count = 0;
+    let firstNewPageId = null;
+
+    files.forEach(file => {
+      const id = `page${Object.keys(this.book.pages).length + 1}`;
+      if (!firstNewPageId) firstNewPageId = id;
+
+      // Register Blob and File
+      const blobUrl = URL.createObjectURL(file);
+      const storeName = `images/${file.name}`;
+
+      this.blobRegistry.images.set(storeName, blobUrl);
+      this.fileRegistry.images.set(storeName, file);
+
+      // Create Page
+      this.book.pages[id] = {
+        image: storeName,
+        sequence: [0, 1, 2], // Default sequence
+        buttons: [],
+        imageSettings: { orientation: 'portrait' } // Default to portrait
+      };
+      count++;
+    });
+
+    this.renderPageList();
+    if (firstNewPageId) {
+      this.selectPage(firstNewPageId);
+    }
+
+    this.showStatus(`已批量添加 ${count} 个页面`);
+    // Reset input
+    e.target.value = '';
   }
 
   updatePageSequence() {
