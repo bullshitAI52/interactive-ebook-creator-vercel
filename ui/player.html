@@ -444,6 +444,34 @@
                 updateUI();
             };
 
+            // Mobile Swipe Support
+            let touchStartX = 0;
+            let touchEndX = 0;
+            const minSwipeDistance = 50;
+
+            const touchZone = document.querySelector('.book-stage') || document.body;
+
+            touchZone.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+            }, { passive: true });
+
+            touchZone.addEventListener('touchend', (e) => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            }, { passive: true });
+
+            function handleSwipe() {
+                const distance = touchEndX - touchStartX;
+                if (Math.abs(distance) < minSwipeDistance) return;
+
+                if (distance > 0) {
+                    // Right Swipe -> Previous Page
+                    prevBtn.click();
+                } else {
+                    // Left Swipe -> Next Page
+                    nextBtn.click();
+                }
+            }
         });
     </script>
 </body>

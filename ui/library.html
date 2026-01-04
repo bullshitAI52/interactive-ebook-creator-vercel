@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的书架 - 互动电子书</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/dark-theme.css">
+    <style>
+        body {
+            background: #f5f5f7;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        .library-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-top: 20px;
+        }
+
+        .library-header h1 {
+            font-size: 2.5rem;
+            color: #1d1d1f;
+            margin-bottom: 10px;
+        }
+
+        .library-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .book-card {
+            background: white;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .book-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .book-cover {
+            aspect-ratio: 3/4;
+            background: #e0e0e0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .book-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .book-cover-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            font-size: 3rem;
+            font-weight: bold;
+        }
+
+        .book-info {
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .book-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #1d1d1f;
+        }
+
+        .book-desc {
+            font-size: 0.9rem;
+            color: #86868b;
+            line-height: 1.4;
+            flex: 1;
+        }
+
+        .book-type {
+            margin-top: 15px;
+            display: inline-block;
+            padding: 4px 8px;
+            background: #f5f5f7;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: #666;
+            align-self: flex-start;
+        }
+
+        /* Dark Mode Support */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #1d1d1f;
+            }
+
+            .library-header h1 {
+                color: #f5f5f7;
+            }
+
+            .book-card {
+                background: #2d2d2f;
+            }
+
+            .book-title {
+                color: #f5f5f7;
+            }
+
+            .book-desc {
+                color: #86868b;
+            }
+
+            .book-type {
+                background: #3d3d3f;
+                color: #aaa;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="library-header">
+        <h1>📚 我的书架</h1>
+        <p style="color: #86868b;">Select a book to start learning</p>
+    </div>
+
+    <div class="library-grid" id="library-grid">
+        <!-- JS renders books here -->
+        <div style="grid-column: 1/-1; text-align: center; color: #888; padding: 50px;">
+            正在加载书架...
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const grid = document.getElementById('library-grid');
+
+            try {
+                // Fetch library manifest
+                const res = await fetch('books.json');
+                if (!res.ok) throw new Error('无法加载书架配置');
+                const books = await res.json();
+
+                renderBooks(books);
+            } catch (e) {
+                console.error(e);
+                grid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; color: #ff3b30; padding: 50px;">
+                        <h3>😅 加载失败</h3>
+                        <p>${e.message}</p>
+                        <p>请确保 ui/books.json 文件存在</p>
+                    </div>
+                `;
+            }
+
+            function renderBooks(books) {
+                grid.innerHTML = ''; // Clear loading
+
+                if (books.length === 0) {
+                    grid.innerHTML = '<div style="text-align:center; grid-column:1/-1;">书架空空如也</div>';
+                    return;
+                }
+
+                books.forEach(book => {
+                    const card = document.createElement('a');
+                    card.className = 'book-card';
+                    // Determine link
+                    // If JSON, use auto mechanism. If ZIP, pass as param
+                    let href = 'player.html';
+                    if (book.path) {
+                        href += `?book=${encodeURIComponent(book.path)}`;
+                    }
+                    card.href = href;
+
+                    // Cover logic
+                    let coverHtml = '';
+                    if (book.cover && !book.cover.includes('placeholder')) {
+                        coverHtml = `<img src="${book.cover}" alt="${book.title}" onerror="this.parentElement.innerHTML='<div class=\'book-cover-placeholder\'>📖</div>'">`;
+                    } else {
+                        // Dynamic placeholder based on title initials
+                        const initial = book.title.charAt(0) || '📖';
+                        coverHtml = `<div class="book-cover-placeholder">${initial}</div>`;
+                    }
+
+                    card.innerHTML = `
+                        <div class="book-cover">
+                            ${coverHtml}
+                        </div>
+                        <div class="book-info">
+                            <div class="book-title">${book.title}</div>
+                            <div class="book-desc">${book.description || '暂无简介'}</div>
+                            <div class="book-type">${book.type ? book.type.toUpperCase() : 'BOOK'}</div>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

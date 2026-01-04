@@ -1,0 +1,16 @@
+[
+    {
+        "title": "示例绘本 (Example)",
+        "description": "默认的互动电子书示例",
+        "cover": "images/cover_placeholder.svg",
+        "path": "book.json",
+        "type": "json"
+    },
+    {
+        "title": "第一课: 动物 (Lesson 1)",
+        "description": "认识常见的农场动物",
+        "cover": "books/covers/lesson1.png",
+        "path": "books/lesson1.zip",
+        "type": "zip"
+    }
+]
