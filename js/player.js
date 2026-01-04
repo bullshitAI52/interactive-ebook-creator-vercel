@@ -56,6 +56,17 @@ class InteractiveBookPlayer {
     // 更新页面图片
     const pageImage = document.getElementById('page-image');
 
+    // 更新 wrapper 宽高比
+    const wrapper = document.getElementById('page-content-wrapper');
+    if (wrapper) {
+      const orientation = page.imageSettings?.orientation || 'portrait';
+      if (orientation === 'landscape') {
+        wrapper.classList.add('landscape');
+      } else {
+        wrapper.classList.remove('landscape');
+      }
+    }
+
     if (pageImage) {
       pageImage.src = page.image;
       pageImage.style.display = 'block';
