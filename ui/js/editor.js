@@ -627,403 +627,390 @@ class BookEditor {
           audioSrc = base + btn.override;
         }
       }
+
+      const audio = new Audio(audioSrc);
+      audio.play().catch(e => {
+        this.showError(`播放失败: ${e.message}`);
+      });
+      this.showStatus(isBlob ? `Playing local: ${btn.override}` : `Try playing: ${audioSrc}`);
     } else {
-      // Sequence logic
-      const audioIndex = page.sequence[btn.pos];
-      if (this.book.audioPool && this.book.audioPool[audioIndex]) {
-        const filename = this.book.audioPool[audioIndex];
-        if (this.blobRegistry.audio.has(filename)) {
-          audioSrc = this.blobRegistry.audio.get(filename);
-          isBlob = true;
-        } else {
-          audioSrc = base + filename;
-        }
-      }
+      // Auto Match Logic for Test
+      const globalStart = this.getGlobalStartIndex(this.currentPageId);
+      const globalIndex = globalStart + index + 1;
+      const autoSrc = `${base}${globalIndex}.mp3`;
+
+      const audio = new Audio(autoSrc);
+      audio.play().catch(e => {
+        this.showError(`自动匹配播放失败 (${globalIndex}.mp3)`);
+      });
+      this.showStatus(`Try auto-match: ${globalIndex}.mp3`);
     }
-
-    const audio = new Audio(audioSrc);
-    audio.play().catch(e => {
-      this.showError(`播放失败: ${e.message}`);
-    });
-    this.showStatus(isBlob ? `Playing local: ${btn.override || 'sequence'}` : `Try playing: ${audioSrc}`);
-  } else {
-  // Auto Match Logic for Test
-  const globalStart = this.getGlobalStartIndex(this.currentPageId);
-  const globalIndex = globalStart + index + 1;
-  const autoSrc = `${base}${globalIndex}.mp3`;
-
-  const audio = new Audio(autoSrc);
-  audio.play().catch(e => {
-    this.showError(`自动匹配播放失败 (${globalIndex}.mp3)`);
-  });
-  this.showStatus(`Try auto-match: ${globalIndex}.mp3`);
-}
   }
 
-addButtonWithDrag() {
-  if (!this.currentPageId) return;
-  const page = this.book.pages[this.currentPageId];
-  let nextPos = 0;
-  nextPos = page.buttons.length;
+  addButtonWithDrag() {
+    if (!this.currentPageId) return;
+    const page = this.book.pages[this.currentPageId];
+    let nextPos = 0;
+    nextPos = page.buttons.length;
 
-  page.buttons.push({
-    x: 0.5,
-    y: 0.5,
-    pos: nextPos
-  });
+    page.buttons.push({
+      x: 0.5,
+      y: 0.5,
+      pos: nextPos
+    });
 
-  this.currentButtonIndex = page.buttons.length - 1;
-  this.renderCanvasButtons();
-  this.renderListButtons();
-  this.renderPageList();
-  this.showStatus('按钮已添加，请拖拽到目标位置');
-}
-
-handleButtonDragStart(e) {
-  e.preventDefault();
-  // 确保获取的是按钮元素
-  const btnEl = e.target.closest('.canvas-button');
-  if (!btnEl) return;
-
-  const index = parseInt(btnEl.dataset.index);
-
-  this.currentButtonIndex = index;
-
-  // 注意：这里重新渲染会导致 btnEl 引用断裂（被移除并重新创建）
-  // 所以我们暂时只高亮不重绘，或者在拖拽结束后重绘
-  // 但 currentButtonIndex 改变需要 visual 反馈
-  // 简单起见：手动添加 active 类，不调用 renderCanvasButtons
-  const allBtns = this.imagePreview.querySelectorAll('.canvas-button');
-  allBtns.forEach(b => b.classList.remove('active'));
-  btnEl.classList.add('active');
-  this.renderListButtons(); // List 可更新
-
-  const rect = this.imagePreview.getBoundingClientRect();
-  const startClientX = e.clientX;
-  const startClientY = e.clientY;
-
-  // 获取当前按钮的初始百分比位置
-  const page = this.book.pages[this.currentPageId];
-  if (!page || !page.buttons[index]) return;
-
-  const initialBtnX = page.buttons[index].x;
-  const initialBtnY = page.buttons[index].y;
-
-  const onMouseMove = (moveEvent) => {
-    const deltaX = (moveEvent.clientX - startClientX) / rect.width;
-    const deltaY = (moveEvent.clientY - startClientY) / rect.height;
-
-    let newX = initialBtnX + deltaX;
-    let newY = initialBtnY + deltaY;
-
-    newX = Math.max(0, Math.min(1, newX));
-    newY = Math.max(0, Math.min(1, newY));
-
-    btnEl.style.left = `${newX * 100}%`;
-    btnEl.style.top = `${newY * 100}%`;
-
-    // 实时更新数据
-    page.buttons[index].x = newX;
-    page.buttons[index].y = newY;
-  };
-
-  const onMouseUp = () => {
-    document.removeEventListener('mousemove', onMouseMove);
-    document.removeEventListener('mouseup', onMouseUp);
-    // 拖拽结束，统一刷新一次以确保状态一致
+    this.currentButtonIndex = page.buttons.length - 1;
     this.renderCanvasButtons();
-  };
+    this.renderListButtons();
+    this.renderPageList();
+    this.showStatus('按钮已添加，请拖拽到目标位置');
+  }
 
-  document.addEventListener('mousemove', onMouseMove);
-  document.addEventListener('mouseup', onMouseUp);
-}
+  handleButtonDragStart(e) {
+    e.preventDefault();
+    // 确保获取的是按钮元素
+    const btnEl = e.target.closest('.canvas-button');
+    if (!btnEl) return;
 
-// --- Modal Logic ---
-openEditModal(index) {
-  if (!this.currentPageId) return;
-  const btn = this.book.pages[this.currentPageId].buttons[index];
-  if (!btn) return;
+    const index = parseInt(btnEl.dataset.index);
 
-  this.currentButtonIndex = index;
-  this.editButtonNumber.textContent = index + 1;
-  this.modalButtonPos.value = btn.pos;
-  this.modalOverrideAudio.value = btn.override || '';
-  this.modalButtonX.value = btn.x.toFixed(3);
-  this.modalButtonY.value = btn.y.toFixed(3);
+    this.currentButtonIndex = index;
 
-  this.buttonEditModal.classList.add('active');
-}
+    // 注意：这里重新渲染会导致 btnEl 引用断裂（被移除并重新创建）
+    // 所以我们暂时只高亮不重绘，或者在拖拽结束后重绘
+    // 但 currentButtonIndex 改变需要 visual 反馈
+    // 简单起见：手动添加 active 类，不调用 renderCanvasButtons
+    const allBtns = this.imagePreview.querySelectorAll('.canvas-button');
+    allBtns.forEach(b => b.classList.remove('active'));
+    btnEl.classList.add('active');
+    this.renderListButtons(); // List 可更新
 
-closeModal() {
-  this.buttonEditModal.classList.remove('active');
-}
+    const rect = this.imagePreview.getBoundingClientRect();
+    const startClientX = e.clientX;
+    const startClientY = e.clientY;
 
-saveButtonChanges() {
-  if (this.currentButtonIndex === null) return;
-  const page = this.book.pages[this.currentPageId];
-  const btn = page.buttons[this.currentButtonIndex];
+    // 获取当前按钮的初始百分比位置
+    const page = this.book.pages[this.currentPageId];
+    if (!page || !page.buttons[index]) return;
 
-  btn.pos = parseInt(this.modalButtonPos.value) || 0;
-  btn.override = this.modalOverrideAudio.value;
-  btn.x = parseFloat(this.modalButtonX.value);
-  btn.y = parseFloat(this.modalButtonY.value);
+    const initialBtnX = page.buttons[index].x;
+    const initialBtnY = page.buttons[index].y;
 
-  this.closeModal();
-  this.renderCanvasButtons();
-  this.renderListButtons();
-  this.showStatus('按钮属性已更新');
-}
+    const onMouseMove = (moveEvent) => {
+      const deltaX = (moveEvent.clientX - startClientX) / rect.width;
+      const deltaY = (moveEvent.clientY - startClientY) / rect.height;
 
-browseAudioForModal() {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = 'audio/*';
-  input.onchange = (e) => {
-    if (e.target.files[0]) {
-      const file = e.target.files[0];
-      this.modalOverrideAudio.value = file.name;
+      let newX = initialBtnX + deltaX;
+      let newY = initialBtnY + deltaY;
 
-      // Store actual file for zipping
-      this.fileRegistry.audio.set(file.name, file);
-      // Cache Blob for playback
-      this.blobRegistry.audio.set(file.name, URL.createObjectURL(file));
-      this.showStatus('音频已选择 (本地预览模式)');
+      newX = Math.max(0, Math.min(1, newX));
+      newY = Math.max(0, Math.min(1, newY));
+
+      btnEl.style.left = `${newX * 100}%`;
+      btnEl.style.top = `${newY * 100}%`;
+
+      // 实时更新数据
+      page.buttons[index].x = newX;
+      page.buttons[index].y = newY;
+    };
+
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      // 拖拽结束，统一刷新一次以确保状态一致
+      this.renderCanvasButtons();
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  }
+
+  // --- Modal Logic ---
+  openEditModal(index) {
+    if (!this.currentPageId) return;
+    const btn = this.book.pages[this.currentPageId].buttons[index];
+    if (!btn) return;
+
+    this.currentButtonIndex = index;
+    this.editButtonNumber.textContent = index + 1;
+    this.modalButtonPos.value = btn.pos;
+    this.modalOverrideAudio.value = btn.override || '';
+    this.modalButtonX.value = btn.x.toFixed(3);
+    this.modalButtonY.value = btn.y.toFixed(3);
+
+    this.buttonEditModal.classList.add('active');
+  }
+
+  closeModal() {
+    this.buttonEditModal.classList.remove('active');
+  }
+
+  saveButtonChanges() {
+    if (this.currentButtonIndex === null) return;
+    const page = this.book.pages[this.currentPageId];
+    const btn = page.buttons[this.currentButtonIndex];
+
+    btn.pos = parseInt(this.modalButtonPos.value) || 0;
+    btn.override = this.modalOverrideAudio.value;
+    btn.x = parseFloat(this.modalButtonX.value);
+    btn.y = parseFloat(this.modalButtonY.value);
+
+    this.closeModal();
+    this.renderCanvasButtons();
+    this.renderListButtons();
+    this.showStatus('按钮属性已更新');
+  }
+
+  browseAudioForModal() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'audio/*';
+    input.onchange = (e) => {
+      if (e.target.files[0]) {
+        const file = e.target.files[0];
+        this.modalOverrideAudio.value = file.name;
+
+        // Store actual file for zipping
+        this.fileRegistry.audio.set(file.name, file);
+        // Cache Blob for playback
+        this.blobRegistry.audio.set(file.name, URL.createObjectURL(file));
+        this.showStatus('音频已选择 (本地预览模式)');
+      }
+    };
+    input.click();
+  }
+
+  clearButtons() {
+    if (!this.currentPageId) return;
+    if (confirm('确定清空所有按钮？')) {
+      this.book.pages[this.currentPageId].buttons = [];
+      this.currentButtonIndex = null;
+      this.renderCanvasButtons();
+      this.renderListButtons();
+      this.renderPageList();
+      this.showStatus('所有按钮已删除');
     }
-  };
-  input.click();
-}
+  }
 
-clearButtons() {
-  if (!this.currentPageId) return;
-  if (confirm('确定清空所有按钮？')) {
-    this.book.pages[this.currentPageId].buttons = [];
+  // --- Page Operations ---
+  addPage() {
+    const id = `page${Object.keys(this.book.pages).length + 1}`;
+    this.book.pages[id] = {
+      image: '',
+      sequence: [0, 1, 2],
+      buttons: []
+    };
+    this.renderPageList();
+    this.selectPage(id);
+    this.showStatus(`新页面 ${id} 已创建`);
+  }
+
+  removeCurrentPage() {
+    if (!this.currentPageId) return;
+    if (!confirm(`确定删除 ${this.currentPageId}?`)) return;
+
+    delete this.book.pages[this.currentPageId];
+    this.currentPageId = null;
+
+    const keys = Object.keys(this.book.pages);
+    if (keys.length > 0) {
+      this.selectPage(keys[0]);
+    } else {
+      this.renderPageList();
+      this.currentPageTitle.textContent = '(无页面)';
+      // Empty State shown in renderPageList logic
+    }
+    this.showStatus('页面已删除');
+  }
+
+  deleteButton(index) {
+    if (!confirm('确定删除按钮？')) return;
+    this.book.pages[this.currentPageId].buttons.splice(index, 1);
     this.currentButtonIndex = null;
     this.renderCanvasButtons();
     this.renderListButtons();
     this.renderPageList();
-    this.showStatus('所有按钮已删除');
+    this.showStatus('按钮已删除');
   }
-}
 
-// --- Page Operations ---
-addPage() {
-  const id = `page${Object.keys(this.book.pages).length + 1}`;
-  this.book.pages[id] = {
-    image: '',
-    sequence: [0, 1, 2],
-    buttons: []
-  };
-  this.renderPageList();
-  this.selectPage(id);
-  this.showStatus(`新页面 ${id} 已创建`);
-}
-
-removeCurrentPage() {
-  if (!this.currentPageId) return;
-  if (!confirm(`确定删除 ${this.currentPageId}?`)) return;
-
-  delete this.book.pages[this.currentPageId];
-  this.currentPageId = null;
-
-  const keys = Object.keys(this.book.pages);
-  if (keys.length > 0) {
-    this.selectPage(keys[0]);
-  } else {
-    this.renderPageList();
-    this.currentPageTitle.textContent = '(无页面)';
-    // Empty State shown in renderPageList logic
-  }
-  this.showStatus('页面已删除');
-}
-
-deleteButton(index) {
-  if (!confirm('确定删除按钮？')) return;
-  this.book.pages[this.currentPageId].buttons.splice(index, 1);
-  this.currentButtonIndex = null;
-  this.renderCanvasButtons();
-  this.renderListButtons();
-  this.renderPageList();
-  this.showStatus('按钮已删除');
-}
-
-// --- IO & Utils ---
-loadFromJson() {
-  try {
-    const data = JSON.parse(this.jsonEditor.value);
-    this.book = data;
-    this.renderPageList();
-    if (Object.keys(this.book.pages).length) {
-      this.selectPage(Object.keys(this.book.pages)[0]);
+  // --- IO & Utils ---
+  loadFromJson() {
+    try {
+      const data = JSON.parse(this.jsonEditor.value);
+      this.book = data;
+      this.renderPageList();
+      if (Object.keys(this.book.pages).length) {
+        this.selectPage(Object.keys(this.book.pages)[0]);
+      }
+      this.showStatus('配置加载成功');
+    } catch (e) {
+      alert('JSON 格式错误');
     }
-    this.showStatus('配置加载成功');
-  } catch (e) {
-    alert('JSON 格式错误');
   }
-}
 
-saveToJson() {
-  if (this.audioPoolTextarea) {
-    this.book.audioPool = this.audioPoolTextarea.value.split('\n').filter(s => s.trim());
+  saveToJson() {
+    if (this.audioPoolTextarea) {
+      this.book.audioPool = this.audioPoolTextarea.value.split('\n').filter(s => s.trim());
+    }
+    if (this.jsonEditor) {
+      this.jsonEditor.value = JSON.stringify(this.book, null, 2);
+    }
   }
-  if (this.jsonEditor) {
-    this.jsonEditor.value = JSON.stringify(this.book, null, 2);
-  }
-}
 
   async saveBook() {
-  this.saveToJson();
-  const blob = new Blob([JSON.stringify(this.book, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'book.json';
-  a.click();
-}
+    this.saveToJson();
+    const blob = new Blob([JSON.stringify(this.book, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'book.json';
+    a.click();
+  }
 
-exportBook() {
-  this.saveBook();
-}
+  exportBook() {
+    this.saveBook();
+  }
 
   // [New] Export All-in-One ZIP
   async exportToZip() {
-  if (typeof JSZip === 'undefined') {
-    alert('JSZip 库未加载，请检查网络或刷新页面');
-    return;
-  }
+    if (typeof JSZip === 'undefined') {
+      alert('JSZip 库未加载，请检查网络或刷新页面');
+      return;
+    }
 
-  const zip = new JSZip();
+    const zip = new JSZip();
 
-  // 1. Add book.json (Sync)
-  this.saveToJson();
-  zip.file("book.json", JSON.stringify(this.book, null, 2));
+    // 1. Add book.json (Sync)
+    this.saveToJson();
+    zip.file("book.json", JSON.stringify(this.book, null, 2));
 
-  // 2. Add folders
-  const imgFolder = zip.folder("images");
-  const audioFolder = zip.folder("audio");
+    // 2. Add folders
+    const imgFolder = zip.folder("images");
+    const audioFolder = zip.folder("audio");
 
-  let addedCount = 0;
+    let addedCount = 0;
 
-  // 3. Add Images
-  // Iterate through used images in book.json
-  const pageValues = Object.values(this.book.pages);
-  for (const page of pageValues) {
-    if (page.image && typeof page.image === 'string') {
-      const filePath = page.image;
-      const zipPath = `images/${filePath.split('/').pop()}`; // Normalize to flattened images folder if needed, or keep path
-      // Current logic assumes flattened images folder in zip
+    // 3. Add Images
+    // Iterate through used images in book.json
+    const pageValues = Object.values(this.book.pages);
+    for (const page of pageValues) {
+      if (page.image && typeof page.image === 'string') {
+        const filePath = page.image;
+        const zipPath = `images/${filePath.split('/').pop()}`; // Normalize to flattened images folder if needed, or keep path
+        // Current logic assumes flattened images folder in zip
 
-      await this.addFileToZip(zip, filePath, zipPath, 'images');
+        await this.addFileToZip(zip, filePath, zipPath, 'images');
+        addedCount++;
+      }
+    }
+
+    // 4. Add Audio
+    // Iterate pages for button overrides
+    for (const page of pageValues) {
+      if (page.buttons) {
+        for (const btn of page.buttons) {
+          if (btn.override) {
+            const filePath = btn.override;
+            const zipPath = `audio/${filePath.split('/').pop()}`;
+            await this.addFileToZip(zip, filePath, zipPath, 'audio');
+            addedCount++;
+          }
+        }
+      }
+    }
+
+    // Iterate audio pool (if any)
+    const audioPool = this.book.audioPool || [];
+    const audioBase = this.book.audioBase || 'audio/';
+    for (const filename of audioPool) {
+      const filePath = (audioBase.endsWith('/') ? audioBase : audioBase + '/') + filename;
+      const zipPath = `audio/${filename}`;
+      await this.addFileToZip(zip, filePath, zipPath, 'audio');
       addedCount++;
     }
-  }
 
-  // 4. Add Audio
-  // Iterate pages for button overrides
-  for (const page of pageValues) {
-    if (page.buttons) {
-      for (const btn of page.buttons) {
-        if (btn.override) {
-          const filePath = btn.override;
-          const zipPath = `audio/${filePath.split('/').pop()}`;
-          await this.addFileToZip(zip, filePath, zipPath, 'audio');
-          addedCount++;
-        }
-      }
+    // 5. Generate Info.txt
+    zip.file("使用说明.txt", "请解压本压缩包内容到您的项目文件夹中，覆盖对应的 book.json, images 和 audio 文件夹。\n\n" +
+      "文件统计：\n" +
+      `- 配置文件: book.json\n` +
+      `- 媒体文件: ${addedCount} 个 (仅包含本次会话新上传的文件)\n\n` +
+      "注意：如果您引用了之前已存在的文件，它们不会包含在此压缩包中，请确保它们未被删除。");
+
+    // 6. Generate Drop
+    this.showStatus('正在打包资源...', 'info');
+    try {
+      const content = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(content);
+      const a = document.createElement('a');
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+      a.href = url;
+      a.download = `project_assets_${timestamp}.zip`;
+      a.click();
+      this.showStatus('资源包已下载，请解压使用！');
+    } catch (e) {
+      this.showError('打包失败: ' + e.message);
     }
   }
 
-  // Iterate audio pool (if any)
-  const audioPool = this.book.audioPool || [];
-  const audioBase = this.book.audioBase || 'audio/';
-  for (const filename of audioPool) {
-    const filePath = (audioBase.endsWith('/') ? audioBase : audioBase + '/') + filename;
-    const zipPath = `audio/${filename}`;
-    await this.addFileToZip(zip, filePath, zipPath, 'audio');
-    addedCount++;
-  }
-
-  // 5. Generate Info.txt
-  zip.file("使用说明.txt", "请解压本压缩包内容到您的项目文件夹中，覆盖对应的 book.json, images 和 audio 文件夹。\n\n" +
-    "文件统计：\n" +
-    `- 配置文件: book.json\n` +
-    `- 媒体文件: ${addedCount} 个 (仅包含本次会话新上传的文件)\n\n` +
-    "注意：如果您引用了之前已存在的文件，它们不会包含在此压缩包中，请确保它们未被删除。");
-
-  // 6. Generate Drop
-  this.showStatus('正在打包资源...', 'info');
-  try {
-    const content = await zip.generateAsync({ type: "blob" });
-    const url = URL.createObjectURL(content);
+  createBackup() {
+    const blob = new Blob([JSON.stringify(this.book, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    const timestamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
     a.href = url;
-    a.download = `project_assets_${timestamp}.zip`;
+    a.download = `backup_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.json`;
     a.click();
-    this.showStatus('资源包已下载，请解压使用！');
-  } catch (e) {
-    this.showError('打包失败: ' + e.message);
+    this.showStatus('备份文件已下载');
   }
-}
 
-createBackup() {
-  const blob = new Blob([JSON.stringify(this.book, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `backup_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.json`;
-  a.click();
-  this.showStatus('备份文件已下载');
-}
-
-importFromFile() {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = '.json';
-  input.onchange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      try {
-        const data = JSON.parse(evt.target.result);
-        this.book = data;
-        this.renderPageList();
-        if (Object.keys(this.book.pages).length) {
-          this.selectPage(Object.keys(this.book.pages)[0]);
+  importFromFile() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        try {
+          const data = JSON.parse(evt.target.result);
+          this.book = data;
+          this.renderPageList();
+          if (Object.keys(this.book.pages).length) {
+            this.selectPage(Object.keys(this.book.pages)[0]);
+          }
+          this.showStatus('导入成功');
+        } catch (err) {
+          this.showError('JSON解析失败');
         }
-        this.showStatus('导入成功');
-      } catch (err) {
-        this.showError('JSON解析失败');
-      }
 
+      };
+      reader.readAsText(file);
     };
-    reader.readAsText(file);
-  };
-  input.click();
-}
+    input.click();
+  }
   // Helper to add file to zip (Registry or Fetch)
   async addFileToZip(zip, filePath, zipPath, type) {
-  if (!filePath) return;
+    if (!filePath) return;
 
-  // Check registry first
-  if (type === 'images' && this.fileRegistry.images.has(filePath)) {
-    zip.file(zipPath, this.fileRegistry.images.get(filePath));
-    return;
-  }
-  if (type === 'audio' && this.fileRegistry.audio.has(filePath)) {
-    zip.file(zipPath, this.fileRegistry.audio.get(filePath));
-    return;
-  }
-
-  // Try Fetch
-  try {
-    const response = await fetch(filePath);
-    if (response.ok) {
-      const blob = await response.blob();
-      zip.file(zipPath, blob);
+    // Check registry first
+    if (type === 'images' && this.fileRegistry.images.has(filePath)) {
+      zip.file(zipPath, this.fileRegistry.images.get(filePath));
+      return;
     }
-  } catch (e) {
-    console.warn(`Failed to export file: ${filePath}`, e);
+    if (type === 'audio' && this.fileRegistry.audio.has(filePath)) {
+      zip.file(zipPath, this.fileRegistry.audio.get(filePath));
+      return;
+    }
+
+    // Try Fetch
+    try {
+      const response = await fetch(filePath);
+      if (response.ok) {
+        const blob = await response.blob();
+        zip.file(zipPath, blob);
+      }
+    } catch (e) {
+      console.warn(`Failed to export file: ${filePath}`, e);
+    }
   }
-}
 }
