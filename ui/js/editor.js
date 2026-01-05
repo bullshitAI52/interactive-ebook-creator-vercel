@@ -51,6 +51,7 @@ class BookEditor {
     this.removePageBtn = document.getElementById('remove-page-btn');
     this.batchAddBtn = document.getElementById('batch-add-btn');
     this.batchImageInput = document.getElementById('batch-image-input');
+    this.audioFolderInput = document.getElementById('audio-folder-input');
 
     // 工具栏
     this.currentPageTitle = document.getElementById('current-page-title');
@@ -132,6 +133,11 @@ class BookEditor {
     // 批量导入 (Click handled in HTML inline)
     if (this.batchImageInput) {
       this.batchImageInput.addEventListener('change', (e) => this.handleBatchUpload(e));
+    }
+
+    // 批量导入音频
+    if (this.audioFolderInput) {
+      this.audioFolderInput.addEventListener('change', (e) => this.handleBatchAudioUpload(e));
     }
 
     // 方向切换
@@ -503,6 +509,39 @@ class BookEditor {
     e.target.value = '';
   }
 
+  handleBatchAudioUpload(e) {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    // Filter audio files
+    const audioExtensions = ['.mp3', '.wav', '.ogg', '.m4a', '.aac', '.flac'];
+    const audioFiles = files.filter(file => {
+      const ext = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+      return audioExtensions.includes(ext);
+    });
+
+    if (!audioFiles.length) {
+      this.showError('未找到音频文件！');
+      e.target.value = '';
+      return;
+    }
+
+    let count = 0;
+    audioFiles.forEach(file => {
+      // Create blob URL for preview
+      const blobUrl = URL.createObjectURL(file);
+      const storeName = file.name;
+
+      // Register in caches
+      this.blobRegistry.audio.set(storeName, blobUrl);
+      this.fileRegistry.audio.set(storeName, file);
+      count++;
+    });
+
+    this.showStatus(`已导入 ${count} 个音频文件`);
+    e.target.value = '';
+  }
+
   updatePageSequence() {
     if (!this.currentPageId) return;
     const val = this.audioSequenceInput.value;
@@ -628,10 +667,24 @@ class BookEditor {
         }
       }
 
+
       const audio = new Audio(audioSrc);
+
+      // Find the canvas button element
+      const canvasButton = this.imagePreview.querySelector(`[data-index="${index}"]`);
+      if (canvasButton) {
+        canvasButton.classList.add('playing');
+      }
+
       audio.play().catch(e => {
         this.showError(`播放失败: ${e.message}`);
+        if (canvasButton) canvasButton.classList.remove('playing');
       });
+
+      audio.addEventListener('ended', () => {
+        if (canvasButton) canvasButton.classList.remove('playing');
+      });
+
       this.showStatus(isBlob ? `Playing local: ${btn.override}` : `Try playing: ${audioSrc}`);
     } else {
       // Auto Match Logic for Test
@@ -640,9 +693,22 @@ class BookEditor {
       const autoSrc = `${base}${globalIndex}.mp3`;
 
       const audio = new Audio(autoSrc);
+
+      // Find the canvas button element
+      const canvasButton = this.imagePreview.querySelector(`[data-index="${index}"]`);
+      if (canvasButton) {
+        canvasButton.classList.add('playing');
+      }
+
       audio.play().catch(e => {
         this.showError(`自动匹配播放失败 (${globalIndex}.mp3)`);
+        if (canvasButton) canvasButton.classList.remove('playing');
       });
+
+      audio.addEventListener('ended', () => {
+        if (canvasButton) canvasButton.classList.remove('playing');
+      });
+
       this.showStatus(`Try auto-match: ${globalIndex}.mp3`);
     }
   }

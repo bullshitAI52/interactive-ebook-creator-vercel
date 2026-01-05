@@ -150,6 +150,14 @@
                         </button>
                         <button id="import-file-btn" class="btn btn-secondary btn-sm">导入JSON</button>
                         <button id="export-file-btn" class="btn btn-secondary btn-sm">仅导出JSON</button>
+                        <button id="batch-audio-btn" class="btn btn-secondary btn-sm"
+                            onclick="document.getElementById('audio-folder-input').click()">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <path
+                                    d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
+                            </svg>
+                            批量导入音频
+                        </button>
                         <button id="backup-btn" class="btn btn-secondary btn-sm">创建备份</button>
                         <button id="clear-buttons-btn" class="btn btn-secondary btn-sm"
                             style="color: var(--error-color);">清空按钮</button>
@@ -249,6 +257,7 @@
     <!-- Hidden Inputs -->
     <input type="file" id="batch-image-input" accept="image/*" multiple style="display:none">
     <input type="file" id="new-page-input" accept="image/*" style="display:none">
+    <input type="file" id="audio-folder-input" webkitdirectory directory multiple accept="audio/*" style="display:none">
 
     <script src="js/player.js"></script>
     <script src="js/editor.js"></script>

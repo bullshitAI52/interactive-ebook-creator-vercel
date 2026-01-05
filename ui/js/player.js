@@ -147,11 +147,11 @@ class InteractiveBookPlayer {
 
     // 更新高亮状态
     if (this.currentPlayingButton) {
-      this.currentPlayingButton.classList.remove('active');
+      this.currentPlayingButton.classList.remove('playing');
     }
     if (btnElement) {
       this.currentPlayingButton = btnElement;
-      this.currentPlayingButton.classList.add('active');
+      this.currentPlayingButton.classList.add('playing');
     }
 
     let mediaSrc = '';
@@ -176,7 +176,7 @@ class InteractiveBookPlayer {
         console.error('Invalid audio index:', audioIndex);
         // 播放失败也要移除高亮
         if (this.currentPlayingButton) {
-          setTimeout(() => this.currentPlayingButton.classList.remove('active'), 200);
+          setTimeout(() => this.currentPlayingButton.classList.remove('playing'), 200);
           this.currentPlayingButton = null;
         }
         return;
@@ -197,7 +197,7 @@ class InteractiveBookPlayer {
 
       const onEnd = () => {
         if (this.currentPlayingButton) {
-          this.currentPlayingButton.classList.remove('active');
+          this.currentPlayingButton.classList.remove('playing');
           this.currentPlayingButton = null;
         }
         this.isPlaying = false;
@@ -207,7 +207,7 @@ class InteractiveBookPlayer {
       const onError = (e) => {
         console.warn('播放出错', e);
         if (this.currentPlayingButton) {
-          this.currentPlayingButton.classList.remove('active');
+          this.currentPlayingButton.classList.remove('playing');
           this.currentPlayingButton = null;
         }
         this.isPlaying = false;
