@@ -58,6 +58,8 @@ class BookEditor {
     this.portraitRadio = document.getElementById('portrait-mode');
     this.landscapeRadio = document.getElementById('landscape-mode');
     this.addButtonBtn = document.getElementById('add-button-btn');
+    this.batchButtonCount = document.getElementById('batch-button-count');
+    this.batchAddButtonsBtn = document.getElementById('batch-add-buttons-btn');
 
     // 画布区域
     this.imagePreview = document.getElementById('image-preview'); // 就是 .a4-canvas
@@ -149,6 +151,11 @@ class BookEditor {
 
     // 添加按钮
     this.addButtonBtn.addEventListener('click', () => this.addButtonWithDrag());
+
+    // 批量添加按钮
+    if (this.batchAddButtonsBtn) {
+      this.batchAddButtonsBtn.addEventListener('click', () => this.batchAddButtons());
+    }
 
     // 序列更新
     this.audioSequenceInput.addEventListener('change', () => this.updatePageSequence());
@@ -730,6 +737,52 @@ class BookEditor {
     this.renderListButtons();
     this.renderPageList();
     this.showStatus('按钮已添加，请拖拽到目标位置');
+  }
+
+  batchAddButtons() {
+    if (!this.currentPageId) {
+      this.showError('请先选择一个页面');
+      return;
+    }
+
+    const count = parseInt(this.batchButtonCount.value);
+    if (!count || count < 1 || count > 50) {
+      this.showError('请输入1-50之间的数字');
+      return;
+    }
+
+    const page = this.book.pages[this.currentPageId];
+
+    // Calculate grid layout
+    const cols = Math.ceil(Math.sqrt(count));
+    const rows = Math.ceil(count / cols);
+
+    // Add buttons in grid pattern
+    for (let i = 0; i < count; i++) {
+      const row = Math.floor(i / cols);
+      const col = i % cols;
+
+      // Calculate position (centered with margins)
+      const marginX = 0.15; // 15% margin on each side
+      const marginY = 0.15;
+      const usableWidth = 1 - 2 * marginX;
+      const usableHeight = 1 - 2 * marginY;
+
+      // Center each button in its grid cell
+      const x = marginX + (col + 0.5) * (usableWidth / cols);
+      const y = marginY + (row + 0.5) * (usableHeight / rows);
+
+      page.buttons.push({
+        x: x,
+        y: y,
+        pos: page.buttons.length
+      });
+    }
+
+    this.renderCanvasButtons();
+    this.renderListButtons();
+    this.renderPageList();
+    this.showStatus(`已添加 ${count} 个按钮（${cols}×${rows} 网格布局）`);
   }
 
   handleButtonDragStart(e) {

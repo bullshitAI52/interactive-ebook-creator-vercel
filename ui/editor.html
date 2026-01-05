@@ -101,111 +101,124 @@
                     </div>
                 </div>
 
-                <div class="toolbar-group">
-                    <button class="btn btn-secondary btn-sm"
-                        onclick="document.getElementById('page-image-input').click()">
-                        <svg class="icon" viewBox="0 0 24 24">
-                            <path
-                                d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
-                        </svg>
-                        上传图片
-                    </button>
-                    <input type="file" id="page-image-input" accept="image/*" style="display: none;">
+            </div>
 
-                    <button id="add-button-btn" class="btn btn-primary btn-sm">
+            <div class="toolbar-group">
+                <div style="display: flex; gap: 5px; align-items: center;">
+                    <input type="number" id="batch-button-count" min="1" max="50" value="6"
+                        style="width: 55px; padding: 4px 6px; border: 1px solid #ccc; border-radius: 4px;"
+                        placeholder="数量">
+                    <button id="batch-add-buttons-btn" class="btn btn-secondary btn-sm">
                         <svg class="icon" viewBox="0 0 24 24">
-                            <path
-                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" />
+                            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
                         </svg>
-                        添加按钮
+                        批量添加
                     </button>
                 </div>
+
+                <button class="btn btn-secondary btn-sm" onclick="document.getElementById('page-image-input').click()">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path
+                            d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
+                    </svg>
+                    上传图片
+                </button>
+                <input type="file" id="page-image-input" accept="image/*" style="display: none;">
+
+                <button id="add-button-btn" class="btn btn-primary btn-sm">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" />
+                    </svg>
+                    添加按钮
+                </button>
+            </div>
+    </div>
+
+    <!-- 音频序列输入 -->
+    <div style="width: 100%; max-width: 1000px; margin-bottom: 10px; padding: 0 5px;">
+        <input type="text" id="audio-sequence" class="form-control" placeholder="音频序列 (例如: 0,1,2)">
+    </div>
+
+    <!-- 画布区域 -->
+    <div class="canvas-wrapper">
+        <div class="a4-canvas portrait" id="image-preview">
+            <div class="purple-frame"></div>
+            <img id="preview-img" class="canvas-image" alt="" style="display: none;">
+            <!-- 按钮容器 -->
+        </div>
+    </div>
+
+    <!-- 底部面板：按钮管理 & 功能区 -->
+    <div id="bottom-panel" class="panel" style="width: 100%; max-width: 1000px; margin-top: 20px;">
+        <h3 class="panel-title">按钮管理</h3>
+        <div class="button-list-container" id="button-list">
+            <!-- 按钮列表将在这里渲染 -->
+        </div>
+        <!-- 底部功能按钮 -->
+        <div class="bottom-functions" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee;">
+            <div class="btn-group">
+                <button id="export-zip-btn" class="btn btn-primary" title="打包所有资源和配置 (.zip)">
+                    📦 一键打包发布 (ZIP)
+                </button>
+                <button id="import-file-btn" class="btn btn-secondary btn-sm">导入JSON</button>
+                <button id="export-file-btn" class="btn btn-secondary btn-sm">仅导出JSON</button>
+                <button id="batch-audio-btn" class="btn btn-secondary btn-sm"
+                    onclick="document.getElementById('audio-folder-input').click()">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path
+                            d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
+                    </svg>
+                    批量导入音频
+                </button>
+                <button id="backup-btn" class="btn btn-secondary btn-sm">创建备份</button>
+                <button id="clear-buttons-btn" class="btn btn-secondary btn-sm"
+                    style="color: var(--error-color);">清空按钮</button>
+            </div>
+        </div>
+    </div>
+
+    </main>
+
+    <!-- 高级设置标签页 -->
+    <main class="main-content" id="advanced-view" style="display: none;">
+        <div class="panel" style="width: 100%; max-width: 800px;">
+            <h2 class="panel-title">JSON 配置</h2>
+            <div class="form-group">
+                <textarea id="json-editor" class="form-control" rows="15" spellcheck="false"></textarea>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-secondary" id="load-json-btn">从文本框加载</button>
+                <button class="btn btn-secondary" id="save-json-btn">刷新文本框</button>
             </div>
 
-            <!-- 音频序列输入 -->
-            <div style="width: 100%; max-width: 1000px; margin-bottom: 10px; padding: 0 5px;">
-                <input type="text" id="audio-sequence" class="form-control" placeholder="音频序列 (例如: 0,1,2)">
+            <h2 class="panel-title" style="margin-top: 30px;">音频池</h2>
+            <div class="form-group">
+                <textarea id="audio-pool" class="form-control" rows="10"></textarea>
+                <small>Audio Pool (Legacy ID: audio-pool)</small>
+            </div>
+            <div class="form-group">
+                <label>Base Path</label>
+                <input type="text" id="audio-base" class="form-control" value="audio/">
             </div>
 
-            <!-- 画布区域 -->
-            <div class="canvas-wrapper">
-                <div class="a4-canvas portrait" id="image-preview">
-                    <div class="purple-frame"></div>
-                    <img id="preview-img" class="canvas-image" alt="" style="display: none;">
-                    <!-- 按钮容器 -->
-                </div>
+            <!-- 隐藏的兼容性元素 -->
+            <div style="display:none;">
+                <!-- 这些ID在 JS 中可能被引用，保留以防万一，虽然我会尽可能在 JS 中修复 -->
+                <button id="test-play-btn"></button>
+                <button id="reset-preview-btn"></button>
+                <button id="load-btn">Load</button>
+                <button id="export-btn">Export</button>
+                <div id="live-preview"></div>
+                <input id="override-audio">
+                <input id="button-pos">
+                <input id="button-x">
+                <input id="button-y">
+                <div id="advanced-content"></div>
+                <div id="advanced-toggle"></div>
             </div>
-
-            <!-- 底部面板：按钮管理 & 功能区 -->
-            <div id="bottom-panel" class="panel" style="width: 100%; max-width: 1000px; margin-top: 20px;">
-                <h3 class="panel-title">按钮管理</h3>
-                <div class="button-list-container" id="button-list">
-                    <!-- 按钮列表将在这里渲染 -->
-                </div>
-                <!-- 底部功能按钮 -->
-                <div class="bottom-functions" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee;">
-                    <div class="btn-group">
-                        <button id="export-zip-btn" class="btn btn-primary" title="打包所有资源和配置 (.zip)">
-                            📦 一键打包发布 (ZIP)
-                        </button>
-                        <button id="import-file-btn" class="btn btn-secondary btn-sm">导入JSON</button>
-                        <button id="export-file-btn" class="btn btn-secondary btn-sm">仅导出JSON</button>
-                        <button id="batch-audio-btn" class="btn btn-secondary btn-sm"
-                            onclick="document.getElementById('audio-folder-input').click()">
-                            <svg class="icon" viewBox="0 0 24 24">
-                                <path
-                                    d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
-                            </svg>
-                            批量导入音频
-                        </button>
-                        <button id="backup-btn" class="btn btn-secondary btn-sm">创建备份</button>
-                        <button id="clear-buttons-btn" class="btn btn-secondary btn-sm"
-                            style="color: var(--error-color);">清空按钮</button>
-                    </div>
-                </div>
-            </div>
-
-        </main>
-
-        <!-- 高级设置标签页 -->
-        <main class="main-content" id="advanced-view" style="display: none;">
-            <div class="panel" style="width: 100%; max-width: 800px;">
-                <h2 class="panel-title">JSON 配置</h2>
-                <div class="form-group">
-                    <textarea id="json-editor" class="form-control" rows="15" spellcheck="false"></textarea>
-                </div>
-                <div class="btn-group">
-                    <button class="btn btn-secondary" id="load-json-btn">从文本框加载</button>
-                    <button class="btn btn-secondary" id="save-json-btn">刷新文本框</button>
-                </div>
-
-                <h2 class="panel-title" style="margin-top: 30px;">音频池</h2>
-                <div class="form-group">
-                    <textarea id="audio-pool" class="form-control" rows="10"></textarea>
-                    <small>Audio Pool (Legacy ID: audio-pool)</small>
-                </div>
-                <div class="form-group">
-                    <label>Base Path</label>
-                    <input type="text" id="audio-base" class="form-control" value="audio/">
-                </div>
-
-                <!-- 隐藏的兼容性元素 -->
-                <div style="display:none;">
-                    <!-- 这些ID在 JS 中可能被引用，保留以防万一，虽然我会尽可能在 JS 中修复 -->
-                    <button id="test-play-btn"></button>
-                    <button id="reset-preview-btn"></button>
-                    <button id="load-btn">Load</button>
-                    <button id="export-btn">Export</button>
-                    <div id="live-preview"></div>
-                    <input id="override-audio">
-                    <input id="button-pos">
-                    <input id="button-x">
-                    <input id="button-y">
-                    <div id="advanced-content"></div>
-                    <div id="advanced-toggle"></div>
-                </div>
-            </div>
-        </main>
+        </div>
+    </main>
 
     </div>
 
