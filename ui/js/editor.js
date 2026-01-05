@@ -1,6 +1,10 @@
 class BookEditor {
   constructor() {
-    this.book = null;
+    this.book = {
+      pages: {},
+      audioPool: [],
+      audioBase: 'audio/'
+    };
     this.currentPageId = null;
     this.currentButtonIndex = null;
     this.isAdvancedVisible = false;
