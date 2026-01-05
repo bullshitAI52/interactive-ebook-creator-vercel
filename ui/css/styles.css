@@ -218,6 +218,34 @@ body {
     color: var(--text-secondary);
 }
 
+/* Page delete button */
+.page-delete-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    color: var(--text-tertiary);
+    /* Use variable for better theme support */
+    transition: all 0.2s ease;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.7;
+    /* Slightly dim by default */
+}
+
+.page-list-item:hover .page-delete-btn {
+    opacity: 1;
+    /* Fully visible on hover of item */
+}
+
+.page-delete-btn:hover {
+    color: var(--error-color) !important;
+    background-color: rgba(255, 68, 68, 0.1);
+    transform: scale(1.1);
+}
+
 /* 主内容区 */
 .main-content {
     background: #f5f5f7;

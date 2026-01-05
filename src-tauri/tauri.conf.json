@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "identifier": "com.ebook.editor",
   "build": {
-    "beforeDevCommand": "npx http-server ui -p 8080",
+    "beforeDevCommand": "npx http-server ui -p 8080 -c-1",
     "beforeBuildCommand": "",
     "devUrl": "http://localhost:8080",
     "frontendDist": "../ui"

@@ -333,6 +333,8 @@ class BookEditor {
     const pageIds = Object.keys(this.book.pages);
     this.pageCountBadge.textContent = `${pageIds.length}页`;
 
+    console.log('[DEBUG] renderPageList - rendering', pageIds.length, 'pages with delete buttons');
+
     if (pageIds.length === 0) {
       // Empty State In Sidebar
       const emptyEl = document.createElement('div');
@@ -360,9 +362,29 @@ class BookEditor {
                 <div class="page-info-title">${pageId}</div>
                 <div class="page-info-meta">${(page.buttons || []).length} 按钮</div>
             </div>
-            ${pageId === this.currentPageId ? '<svg class="icon" style="color:var(--primary-color)"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>' : ''}
+            <div style="display: flex; gap: 5px; align-items: center;">
+                ${pageId === this.currentPageId ? '<svg class="icon" style="color:var(--primary-color)"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>' : ''}
+                <button class="page-delete-btn" title="删除此页面 - Delete Page">
+                    <svg style="width: 18px; height: 18px; fill: currentColor;" viewBox="0 0 24 24">
+                        <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                    </svg>
+                </button>
+            </div>
         `;
       el.onclick = () => this.selectPage(pageId);
+
+      // Add delete button handler with event propagation stop
+      const deleteBtn = el.querySelector('.page-delete-btn');
+      if (deleteBtn) {
+        console.log('[DEBUG] Adding delete handler for', pageId);
+        deleteBtn.onclick = (e) => {
+          e.stopPropagation();
+          this.deletePage(pageId);
+        };
+      } else {
+        console.error('[ERROR] Delete button not found for', pageId);
+      }
+
       this.pageList.appendChild(el);
     });
   }
@@ -455,7 +477,11 @@ class BookEditor {
     let firstNewPageId = null;
 
     files.forEach(file => {
-      const id = `page${Object.keys(this.book.pages).length + 1}`;
+      // Generate Unique ID
+      let i = Object.keys(this.book.pages).length + 1;
+      while (this.book.pages[`page${i}`]) i++;
+      const id = `page${i}`;
+
       if (!firstNewPageId) firstNewPageId = id;
 
       // Register Blob and File
@@ -494,7 +520,10 @@ class BookEditor {
     const file = e.target.files[0];
     if (!file) return;
 
-    const id = `page${Object.keys(this.book.pages).length + 1}`;
+    // Generate Unique ID
+    let i = Object.keys(this.book.pages).length + 1;
+    while (this.book.pages[`page${i}`]) i++;
+    const id = `page${i}`;
 
     // Register File
     const blobUrl = URL.createObjectURL(file);
@@ -921,7 +950,11 @@ class BookEditor {
 
   // --- Page Operations ---
   addPage() {
-    const id = `page${Object.keys(this.book.pages).length + 1}`;
+    // Generate Unique ID
+    let i = Object.keys(this.book.pages).length + 1;
+    while (this.book.pages[`page${i}`]) i++;
+    const id = `page${i}`;
+
     this.book.pages[id] = {
       image: '',
       sequence: [0, 1, 2],
@@ -933,9 +966,15 @@ class BookEditor {
   }
 
   removeCurrentPage() {
-    if (!this.currentPageId) return;
-    if (!confirm(`确定删除 ${this.currentPageId}?`)) return;
+    if (!this.currentPageId) {
+      alert('请先选择一个页面');
+      return;
+    }
 
+    // DEBUG: 直接删除，无需确认
+    // if (!confirm(`确定删除 ${this.currentPageId}?`)) return;
+
+    const idToDelete = this.currentPageId;
     delete this.book.pages[this.currentPageId];
     this.currentPageId = null;
 
@@ -947,6 +986,33 @@ class BookEditor {
       this.currentPageTitle.textContent = '(无页面)';
       // Empty State shown in renderPageList logic
     }
+    // Alert success to verify execution
+    alert(`页面 ${idToDelete} 已成功删除`);
+    this.showStatus('页面已删除');
+  }
+
+  deletePage(pageId) {
+    if (!pageId) return;
+
+    if (!confirm(`确定删除页面 ${pageId} 吗？此操作无法撤销。`)) return;
+
+    delete this.book.pages[pageId];
+
+    // If we just deleted the current page, select another one
+    if (this.currentPageId === pageId) {
+      this.currentPageId = null;
+      const keys = Object.keys(this.book.pages);
+      if (keys.length > 0) {
+        this.selectPage(keys[0]);
+      } else {
+        this.renderPageList();
+        this.currentPageTitle.textContent = '(无页面)';
+      }
+    } else {
+      // Just refresh the list if we deleted a different page
+      this.renderPageList();
+    }
+
     this.showStatus('页面已删除');
   }
 
