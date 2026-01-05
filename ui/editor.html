@@ -63,13 +63,12 @@
                     添加页面
                 </button>
                 <button id="batch-add-btn" class="btn btn-secondary" style="width: 100%; margin-top: 8px;"
-                    title="选择多张图片，自动生成多个页面">
+                    title="选择多张图片，自动生成多个页面" onclick="document.getElementById('batch-image-input').click()">
                     <svg class="icon" viewBox="0 0 24 24">
                         <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
                     </svg>
                     批量导入页面
                 </button>
-                <input type="file" id="batch-image-input" accept="image/*" multiple style="display:none">
                 <div style="margin-top: 8px; display:flex; gap: 5px;">
                     <button id="remove-page-btn" class="btn btn-secondary btn-sm"
                         style="flex:1; color: var(--error-color);">删除</button>
@@ -246,6 +245,9 @@
 
     <!-- 依赖脚本 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- Hidden Inputs -->
+    <input type="file" id="batch-image-input" accept="image/*" multiple style="display:none">
+
     <script src="js/player.js"></script>
     <script src="js/editor.js"></script>
     <script src="js/tauri-adapter.js"></script>

@@ -120,21 +120,7 @@ class BookEditor {
     this.addPageBtn.addEventListener('click', () => this.addPage());
     this.removePageBtn.addEventListener('click', () => this.removeCurrentPage());
 
-    // 批量导入
-    if (this.batchAddBtn) {
-      console.log('Binding Batch Add Button Click');
-      this.batchAddBtn.addEventListener('click', (e) => {
-        console.log('Batch Add Clicked');
-        if (this.batchImageInput) {
-          this.batchImageInput.click();
-        } else {
-          console.error('Batch Input not found!');
-        }
-      });
-    } else {
-      console.error('Batch Add Button not found!');
-    }
-
+    // 批量导入 (Click handled in HTML inline)
     if (this.batchImageInput) {
       this.batchImageInput.addEventListener('change', (e) => this.handleBatchUpload(e));
     }
