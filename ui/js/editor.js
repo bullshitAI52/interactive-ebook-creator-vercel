@@ -740,8 +740,10 @@ class BookEditor {
   }
 
   batchAddButtons() {
-    if (!this.currentPageId) {
-      this.showError('请先选择一个页面');
+    const pageIds = Object.keys(this.book.pages);
+
+    if (pageIds.length === 0) {
+      this.showError('请先创建页面');
       return;
     }
 
@@ -751,38 +753,44 @@ class BookEditor {
       return;
     }
 
-    const page = this.book.pages[this.currentPageId];
-
     // Calculate grid layout
     const cols = Math.ceil(Math.sqrt(count));
     const rows = Math.ceil(count / cols);
 
-    // Add buttons in grid pattern
-    for (let i = 0; i < count; i++) {
-      const row = Math.floor(i / cols);
-      const col = i % cols;
+    let totalAdded = 0;
 
-      // Calculate position (centered with margins)
-      const marginX = 0.15; // 15% margin on each side
-      const marginY = 0.15;
-      const usableWidth = 1 - 2 * marginX;
-      const usableHeight = 1 - 2 * marginY;
+    // Apply to ALL pages
+    pageIds.forEach(pageId => {
+      const page = this.book.pages[pageId];
 
-      // Center each button in its grid cell
-      const x = marginX + (col + 0.5) * (usableWidth / cols);
-      const y = marginY + (row + 0.5) * (usableHeight / rows);
+      // Add buttons in grid pattern for this page
+      for (let i = 0; i < count; i++) {
+        const row = Math.floor(i / cols);
+        const col = i % cols;
 
-      page.buttons.push({
-        x: x,
-        y: y,
-        pos: page.buttons.length
-      });
-    }
+        // Calculate position (centered with margins)
+        const marginX = 0.15; // 15% margin on each side
+        const marginY = 0.15;
+        const usableWidth = 1 - 2 * marginX;
+        const usableHeight = 1 - 2 * marginY;
+
+        // Center each button in its grid cell
+        const x = marginX + (col + 0.5) * (usableWidth / cols);
+        const y = marginY + (row + 0.5) * (usableHeight / rows);
+
+        page.buttons.push({
+          x: x,
+          y: y,
+          pos: page.buttons.length
+        });
+        totalAdded++;
+      }
+    });
 
     this.renderCanvasButtons();
     this.renderListButtons();
     this.renderPageList();
-    this.showStatus(`已添加 ${count} 个按钮（${cols}×${rows} 网格布局）`);
+    this.showStatus(`已为 ${pageIds.length} 个页面各添加 ${count} 个按钮（${cols}×${rows} 网格），共 ${totalAdded} 个`);
   }
 
   handleButtonDragStart(e) {
