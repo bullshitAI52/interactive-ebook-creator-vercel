@@ -42,6 +42,19 @@ class InteractiveBookPlayer {
     }
   }
 
+  // Helper to get start index for global numbering
+  getGlobalStartIndex(targetPageId) {
+    if (!this.book || !this.book.pages) return 0;
+    const pageIds = Object.keys(this.book.pages);
+    let count = 0;
+    for (const pId of pageIds) {
+      if (pId === targetPageId) break;
+      const p = this.book.pages[pId];
+      count += (p.buttons || []).length;
+    }
+    return count;
+  }
+
   showPage(pageId) {
     if (!this.book || !this.book.pages[pageId]) {
       console.error('Page not found:', pageId);
@@ -52,6 +65,9 @@ class InteractiveBookPlayer {
 
     this.currentPage = pageId;
     const page = this.book.pages[pageId];
+
+    // 计算当前页面的全局起始序号
+    const globalStart = this.getGlobalStartIndex(pageId);
 
     // 更新页面图片
     const pageImage = document.getElementById('page-image');
@@ -91,18 +107,21 @@ class InteractiveBookPlayer {
         btn.className = 'page-button';
         btn.style.left = `${button.x * 100}%`;
         btn.style.top = `${button.y * 100}%`;
-        btn.title = `按钮 ${index + 1} - 点击播放`;
         btn.dataset.index = index;
 
-        // 添加数字显示
+        // Global Index for Title/Reference
+        const globalIndex = globalStart + index + 1;
+        btn.title = `按钮 ${globalIndex} - 点击播放`;
+
+        // 添加数字显示 (CSS 已隐藏，但结构保留)
         const numberSpan = document.createElement('span');
-        numberSpan.textContent = index + 1;
+        numberSpan.textContent = globalIndex; // use global index
         btn.appendChild(numberSpan);
 
         // 添加点击事件
         btn.addEventListener('click', () => {
-          console.log(`按钮 ${index + 1} 被点击`, button);
-          this.playButton(button, btn);
+          console.log(`按钮 ${globalIndex} 被点击`, button);
+          this.playButton(button, btn, index); // Pass local index
         });
 
         buttonArea.appendChild(btn);
