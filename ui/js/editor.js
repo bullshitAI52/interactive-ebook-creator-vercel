@@ -122,8 +122,19 @@ class BookEditor {
 
     // 批量导入
     if (this.batchAddBtn) {
-      this.batchAddBtn.addEventListener('click', () => this.batchImageInput.click());
+      console.log('Binding Batch Add Button Click');
+      this.batchAddBtn.addEventListener('click', (e) => {
+        console.log('Batch Add Clicked');
+        if (this.batchImageInput) {
+          this.batchImageInput.click();
+        } else {
+          console.error('Batch Input not found!');
+        }
+      });
+    } else {
+      console.error('Batch Add Button not found!');
     }
+
     if (this.batchImageInput) {
       this.batchImageInput.addEventListener('change', (e) => this.handleBatchUpload(e));
     }
