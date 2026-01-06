@@ -84,7 +84,8 @@ class InteractiveBookPlayer {
     }
 
     if (pageImage) {
-      pageImage.src = page.image;
+      // Fix: Ensure URL is encoded to handle spaces/special chars
+      pageImage.src = encodeURI(page.image);
       pageImage.style.display = 'block';
       pageImage.style.objectFit = 'contain';
 
@@ -161,6 +162,9 @@ class InteractiveBookPlayer {
       }
     }
 
+    // Encode path for network request
+    const encodedMediaSrc = encodeURI(mediaSrc);
+
     // 切换 暂停/播放 逻辑
     if (this.currentPlayingButton === btnElement) {
       // 正在播放(或暂停)同一个按钮
@@ -187,7 +191,7 @@ class InteractiveBookPlayer {
     }
 
     // 播放媒体
-    return this.playMedia(mediaSrc);
+    return this.playMedia(encodedMediaSrc);
   }
 
   pause() {
@@ -377,7 +381,11 @@ class InteractiveBookPlayer {
           mediaSrc = base + this.book.audioPool[audioIndex];
         }
       }
-      if (mediaSrc && !this.audioCache.has(mediaSrc)) audioUrls.add(mediaSrc);
+      // Fix: Encode URI for preloader consistency
+      if (mediaSrc) {
+        const encoded = encodeURI(mediaSrc);
+        if (!this.audioCache.has(encoded)) audioUrls.add(encoded);
+      }
     });
     for (const url of audioUrls) await this.cacheAudio(url);
   }
@@ -385,12 +393,13 @@ class InteractiveBookPlayer {
   async cacheAudio(url) {
     if (this.audioCache.has(url)) return;
     try {
+      // url is already encoded here
       const response = await fetch(url);
       if (!response.ok) throw new Error(`Failed to load`);
       const blob = await response.blob();
       this.audioCache.set(url, URL.createObjectURL(blob));
     } catch (error) {
-      console.warn(`[Preload] Failed to cache ${url}`);
+      console.warn(`[Preload] Failed to cache ${url}`, error);
     }
   }
 
