@@ -76,6 +76,8 @@ class BookEditor {
     this.exportZipBtn = document.getElementById('export-zip-btn'); // New: Zip button
     this.backupBtn = document.getElementById('backup-btn');
     this.clearButtonsBtn = document.getElementById('clear-buttons-btn');
+    this.importFolderBtn = document.getElementById('import-folder-btn');
+    this.importFolderInput = document.getElementById('import-folder-input');
 
     // 状态通知
     this.statusToast = document.getElementById('status-toast');
@@ -162,6 +164,13 @@ class BookEditor {
 
     // 底部按钮操作
     this.importFileBtn.addEventListener('click', () => this.importFromFile());
+
+    if (this.importFolderBtn) {
+      this.importFolderBtn.addEventListener('click', () => this.importFolderInput.click());
+    }
+    if (this.importFolderInput) {
+      this.importFolderInput.addEventListener('change', (e) => this.handleFolderImport(e));
+    }
     this.exportFileBtn.addEventListener('click', () => this.exportBook());
     if (this.exportZipBtn) {
       this.exportZipBtn.addEventListener('click', () => this.exportToZip());
@@ -660,6 +669,20 @@ class BookEditor {
                 <button class="btn btn-sm btn-secondary list-delete" style="color:red;" title="删除">Del</button>
              </div>
           `;
+
+      // Direct Binding for reliability
+      const playBtn = el.querySelector('.list-play');
+      const editBtn = el.querySelector('.list-edit');
+      const upBtn = el.querySelector('.list-up');
+      const downBtn = el.querySelector('.list-down');
+      const delBtn = el.querySelector('.list-delete');
+
+      if (playBtn) playBtn.onclick = (e) => { e.stopPropagation(); this.testButtonAudio(index); };
+      if (editBtn) editBtn.onclick = (e) => { e.stopPropagation(); this.openEditModal(index); };
+      if (upBtn) upBtn.onclick = (e) => { e.stopPropagation(); this.moveButton(index, -1); };
+      if (downBtn) downBtn.onclick = (e) => { e.stopPropagation(); this.moveButton(index, 1); };
+      if (delBtn) delBtn.onclick = (e) => { e.stopPropagation(); this.deleteButton(index); };
+
       this.buttonListContainer.appendChild(el);
     });
   }
@@ -726,7 +749,14 @@ class BookEditor {
       // Auto Match Logic for Test
       const globalStart = this.getGlobalStartIndex(this.currentPageId);
       const globalIndex = globalStart + index + 1;
-      const autoSrc = `${base}${globalIndex}.mp3`;
+      let autoSrc = `${base}${globalIndex}.mp3`;
+
+      // Check Blob Registry for auto-matched filename (support imported folder)
+      if (this.blobRegistry.audio.has(`${globalIndex}.mp3`)) {
+        autoSrc = this.blobRegistry.audio.get(`${globalIndex}.mp3`);
+      } else if (this.blobRegistry.audio.has(`audio/${globalIndex}.mp3`)) {
+        autoSrc = this.blobRegistry.audio.get(`audio/${globalIndex}.mp3`);
+      }
 
       const audio = new Audio(autoSrc);
 
@@ -823,6 +853,7 @@ class BookEditor {
   }
 
   handleButtonDragStart(e) {
+    if (e.button !== 0) return; // Only allow left click
     e.preventDefault();
     // 确保获取的是按钮元素
     const btnEl = e.target.closest('.canvas-button');
@@ -1153,6 +1184,62 @@ class BookEditor {
     a.download = `backup_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.json`;
     a.click();
     this.showStatus('备份文件已下载');
+  }
+
+  async handleFolderImport(e) {
+    if (e.target.files.length === 0) return;
+    const files = Array.from(e.target.files);
+
+    const bookFile = files.find(f => f.name === 'book.json' || f.name.endsWith('/book.json'));
+    if (!bookFile) {
+      this.showError('找不到 book.json 配置文件');
+      return;
+    }
+
+    try {
+      const text = await bookFile.text();
+      this.book = JSON.parse(text);
+
+      if (!this.book.audioPool) this.book.audioPool = [];
+      if (!this.book.audioBase) this.book.audioBase = 'audio/';
+
+      // 2. Load Assets
+      this.blobRegistry.images.clear();
+      this.blobRegistry.audio.clear();
+
+      files.forEach(file => {
+        // Audio
+        if (file.name.endsWith('.mp3') || file.type.startsWith('audio/')) {
+          const url = URL.createObjectURL(file);
+          // Store both keys to be safe for auto-match and overrides
+          this.blobRegistry.audio.set(file.name, url);
+          this.blobRegistry.audio.set('audio/' + file.name, url);
+        }
+        // Images
+        if (file.type.startsWith('image/') || file.name.endsWith('.svg') || file.name.endsWith('.png') || file.name.endsWith('.jpg')) {
+          const url = URL.createObjectURL(file);
+          this.blobRegistry.images.set(file.name, url);
+          this.blobRegistry.images.set('images/' + file.name, url);
+        }
+      });
+
+      // 3. Render
+      this.renderPageList();
+      const pageIds = Object.keys(this.book.pages);
+      if (pageIds.length > 0) {
+        this.selectPage(pageIds[0]);
+      } else {
+        this.renderPageDisplay(null);
+      }
+
+      this.showStatus('项目文件夹已导入');
+
+    } catch (err) {
+      console.error(err);
+      this.showError('导入失败: ' + err.message);
+    }
+
+    e.target.value = '';
   }
 
   importFromFile() {

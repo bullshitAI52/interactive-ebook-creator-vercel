@@ -162,6 +162,8 @@
                         <button id="export-zip-btn" class="btn btn-primary" title="打包所有资源和配置 (.zip)">
                             📦 一键打包发布 (ZIP)
                         </button>
+                        <button id="import-folder-btn" class="btn btn-secondary btn-sm" title="导入解压后的项目文件夹">📂
+                            导入文件夹</button>
                         <button id="import-file-btn" class="btn btn-secondary btn-sm">导入JSON</button>
                         <button id="export-file-btn" class="btn btn-secondary btn-sm">仅导出JSON</button>
                         <button id="batch-audio-btn" class="btn btn-secondary btn-sm"
@@ -271,6 +273,7 @@
     <!-- Hidden Inputs -->
     <input type="file" id="batch-image-input" accept="image/*" multiple style="display:none">
     <input type="file" id="new-page-input" accept="image/*" style="display:none">
+    <input type="file" id="import-folder-input" webkitdirectory directory multiple style="display:none">
     <input type="file" id="audio-folder-input" webkitdirectory directory multiple accept="audio/*" style="display:none">
 
     <script src="js/player.js"></script>
