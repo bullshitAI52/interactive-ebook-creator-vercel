@@ -1272,11 +1272,11 @@ class BookEditor {
     };
     input.click();
   }
-  // Helper to add file to zip (Registry or Fetch)
+  // Helper to add file to zip (Registry, Blob, or Fetch)
   async addFileToZip(zip, filePath, zipPath, type) {
     if (!filePath) return;
 
-    // Check registry first
+    // 1. Check File Registry (New uploads)
     if (type === 'images' && this.fileRegistry.images.has(filePath)) {
       zip.file(zipPath, this.fileRegistry.images.get(filePath));
       return;
@@ -1286,7 +1286,29 @@ class BookEditor {
       return;
     }
 
-    // Try Fetch
+    // 2. Check Blob Registry (Imported Folder)
+    // Try exact match or relative match
+    let blobUrl = null;
+    if (type === 'images') {
+      blobUrl = this.blobRegistry.images.get(filePath) || this.blobRegistry.images.get(filePath.split('/').pop());
+    } else {
+      blobUrl = this.blobRegistry.audio.get(filePath) || this.blobRegistry.audio.get(filePath.split('/').pop());
+    }
+
+    if (blobUrl) {
+      try {
+        const response = await fetch(blobUrl);
+        if (response.ok) {
+          const blob = await response.blob();
+          zip.file(zipPath, blob);
+          return;
+        }
+      } catch (e) {
+        console.warn(`Failed to fetch blob for zip: ${filePath}`, e);
+      }
+    }
+
+    // 3. Try Fetch (Local file or URL)
     try {
       const response = await fetch(filePath);
       if (response.ok) {
@@ -1294,7 +1316,7 @@ class BookEditor {
         zip.file(zipPath, blob);
       }
     } catch (e) {
-      console.warn(`Failed to export file: ${filePath}`, e);
+      console.warn(`Failed to export file from fetch: ${filePath}`, e);
     }
   }
 }
