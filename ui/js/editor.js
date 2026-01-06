@@ -196,12 +196,15 @@ class BookEditor {
 
     // 画布中的按钮交互（委托）
     this.imagePreview.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) return; // STRICTLY IGNORE RIGHT CLICK
+
       if (e.target.classList.contains('canvas-button')) {
         this.handleButtonDragStart(e);
       } else if (e.target.closest('.canvas-button')) {
         this.handleButtonDragStart({
           ...e,
-          target: e.target.closest('.canvas-button')
+          target: e.target.closest('.canvas-button'),
+          button: e.button // Explicitly pass button just in case
         });
       }
     });
@@ -623,12 +626,13 @@ class BookEditor {
       if (btn.override) tooltip += `\nAudio: ${btn.override}`;
       el.title = tooltip;
 
-      el.oncontextmenu = (e) => {
+      // Use addEventListener for robust context menu handling
+      el.addEventListener('contextmenu', (e) => {
         e.preventDefault();
-        if (confirm(`删除按钮 #${globalIndex}?`)) {
-          this.deleteButton(index);
-        }
-      };
+        e.stopPropagation(); // Stop bubbling
+        // Directly call deleteButton which has its own confirm
+        this.deleteButton(index);
+      });
 
       this.imagePreview.appendChild(el);
     });
