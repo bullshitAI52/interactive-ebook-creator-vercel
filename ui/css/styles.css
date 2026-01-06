@@ -1,0 +1,1017 @@
+/* 
+ * 互动点读电子书 - 主样式表
+ * 使用 CSS 变量支持主题切换
+ */
+
+:root {
+    /* 主题色 */
+    --primary-color: #6a11cb;
+    --primary-gradient: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    --secondary-color: #2575fc;
+
+    /* 中性色 */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f0f0f0;
+    --bg-tertiary: #f5f5f5;
+    --bg-hover: #e8e8e8;
+
+    /* 文字颜色 */
+    --text-primary: #333;
+    --text-secondary: #666;
+    --text-tertiary: #888;
+    --text-inverse: #ffffff;
+
+    /* 边框颜色 */
+    --border-color: #ddd;
+    --border-light: #e0e0e0;
+    --border-dark: #ccc;
+
+    /* 状态颜色 */
+    --success-color: #4caf50;
+    --warning-color: #ff9800;
+    --error-color: #ff4444;
+    --info-color: #2196f3;
+
+    /* 阴影 */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 4px 20px rgba(0, 0, 0, 0.08);
+    --shadow-xl: 0 10px 30px rgba(0, 0, 0, 0.2);
+
+    /* 圆角 */
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 10px;
+    --radius-xl: 12px;
+    --radius-round: 20px;
+    --radius-circle: 50%;
+
+    /* 间距 */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 12px;
+    --spacing-lg: 20px;
+    --spacing-xl: 30px;
+
+    /* 过渡 */
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.2s ease;
+    --transition-slow: 0.3s ease;
+
+    /* Z-index */
+    --z-base: 1;
+    --z-dropdown: 100;
+    --z-sticky: 500;
+    --z-modal: 1000;
+    --z-tooltip: 2000;
+}
+
+/* 全局样式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+        Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 布局容器 */
+.app-container {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    height: calc(100vh - 60px);
+    /* 减去顶部高度 */
+    overflow: hidden;
+}
+
+/* 顶部导航 */
+.top-nav {
+    height: 60px;
+    background: var(--bg-primary);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    justify-content: space-between;
+    box-shadow: var(--shadow-sm);
+    z-index: var(--z-sticky);
+}
+
+.nav-brand {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.nav-tabs {
+    display: flex;
+    gap: 5px;
+    height: 100%;
+}
+
+.nav-tab {
+    padding: 0 20px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--text-secondary);
+    border-bottom: 3px solid transparent;
+    transition: all var(--transition-normal);
+}
+
+.nav-tab:hover {
+    background: var(--bg-hover);
+    color: var(--primary-color);
+}
+
+.nav-tab.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+    background: var(--bg-hover);
+}
+
+.nav-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* 左侧边栏 */
+.sidebar {
+    background: var(--bg-primary);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.sidebar-header {
+    padding: 15px;
+    border-bottom: 1px solid var(--border-color);
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.sidebar-footer {
+    padding: 15px;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-tertiary);
+}
+
+/* 页面列表项 */
+.page-list-item {
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all var(--transition-normal);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.page-list-item:hover {
+    background: var(--bg-hover);
+    transform: translateX(2px);
+}
+
+.page-list-item.active {
+    background: #f0f7ff;
+    border-color: var(--secondary-color);
+    box-shadow: var(--shadow-sm);
+}
+
+.page-info-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 4px;
+}
+
+.page-info-meta {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+/* Page delete button */
+.page-delete-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    color: var(--text-tertiary);
+    /* Use variable for better theme support */
+    transition: all 0.2s ease;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.7;
+    /* Slightly dim by default */
+}
+
+.page-list-item:hover .page-delete-btn {
+    opacity: 1;
+    /* Fully visible on hover of item */
+}
+
+.page-delete-btn:hover {
+    color: var(--error-color) !important;
+    background-color: rgba(255, 68, 68, 0.1);
+    transform: scale(1.1);
+}
+
+/* 主内容区 */
+.main-content {
+    background: #f5f5f7;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    height: 100%;
+}
+
+.editor-toolbar {
+    width: 100%;
+    max-width: 1000px;
+    margin-bottom: 20px;
+    background: var(--bg-primary);
+    padding: 10px 20px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    z-index: 10;
+}
+
+.toolbar-group {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* A4 画布区域 */
+.canvas-wrapper {
+    position: relative;
+    padding: 40px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.1);
+    overflow: auto;
+    display: flex;
+    justify-content: center;
+    min-height: 600px;
+    width: 100%;
+}
+
+.a4-canvas {
+    background: white;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    position: relative;
+    transition: all 0.3s ease;
+    /* A4 Base Size for scaling purposes if needed, strictly controlled via JS */
+}
+
+/* 竖版 A4: 210mm x 297mm approx ratio 1:1.414 */
+.a4-canvas.portrait {
+    width: 595px;
+    /* 72dpi A4 width */
+    height: 842px;
+    /* 72dpi A4 height */
+}
+
+/* 横版 A4: 297mm x 210mm */
+.a4-canvas.landscape {
+    width: 842px;
+    height: 595px;
+}
+
+/* 紫色边框 (用户草图需求) */
+.purple-frame {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    bottom: 20px;
+    border: 2px dashed var(--primary-color);
+    background: rgba(106, 17, 203, 0.03);
+    pointer-events: none;
+    /* 让点击穿透到图片 */
+    z-index: 10;
+}
+
+.canvas-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    position: relative;
+    z-index: 1;
+}
+
+/* 拖拽按钮 */
+.canvas-button {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid var(--primary-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: var(--primary-color);
+    cursor: move;
+    z-index: 20;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s, box-shadow 0.2s;
+    user-select: none;
+}
+
+.canvas-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(106, 17, 203, 0.3);
+}
+
+.canvas-button.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: white;
+    box-shadow: 0 0 0 4px rgba(106, 17, 203, 0.3);
+}
+
+/* 底部面板列表样式 */
+.button-list-container {
+    max-height: 250px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--bg-tertiary);
+    padding: 10px;
+}
+
+.list-button-item {
+    background: white;
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 4px;
+    border: 1px solid var(--border-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+
+.list-button-item.active {
+    border-left: 4px solid var(--primary-color);
+    background: #f8faff;
+}
+
+/* 通用按钮样式 */
+.btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.btn-primary {
+    background: var(--primary-gradient);
+    color: var(--text-inverse);
+    box-shadow: 0 2px 4px rgba(106, 17, 203, 0.2);
+}
+
+.btn-primary:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(106, 17, 203, 0.3);
+}
+
+.btn-secondary {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: var(--bg-hover);
+    border-color: #ccc;
+}
+
+.btn-icon {
+    padding: 6px;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+}
+
+.btn-sm {
+    padding: 4px 10px;
+    font-size: 0.8rem;
+}
+
+/* 表单元素 */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.form-control {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    transition: border 0.2s;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(106, 17, 203, 0.1);
+}
+
+/* 上传区域 */
+.upload-area {
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #fafafa;
+}
+
+.upload-area:hover {
+    border-color: var(--primary-color);
+    background: rgba(106, 17, 203, 0.05);
+}
+
+/* 模态框 */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: var(--z-modal);
+    display: none;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    width: 500px;
+    max-width: 90%;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-body {
+    padding: 20px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.modal-footer {
+    padding: 15px 20px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #999;
+}
+
+.close-btn:hover {
+    color: #333;
+}
+
+/* 面板样式 */
+.panel {
+    background: var(--bg-primary);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.panel-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+/* 图标 */
+.icon {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+    vertical-align: middle;
+}
+
+/* =========================================
+   全局按钮样式更新 (Global Stylish Buttons)
+   ========================================= */
+
+/* A. 播放页面的按钮 */
+.page-button {
+    pointer-events: auto;
+    position: absolute;
+    transform: translate(-50%, -50%);
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    /* 玻璃拟态背景 */
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 10;
+}
+
+/* 内部核心播放图标 */
+.page-button::after {
+    content: '';
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 8px 0 8px 14px;
+    border-color: transparent transparent transparent white;
+    margin-left: 4px;
+    /* 视觉居中校正 */
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    transition: all 0.3s ease;
+}
+
+/* 仍然保留数字，但做得很小很精致，放在右下角或者 hover 显示 */
+/* [Changed] 播放器不需要显示数字，除非 hover (或者根据需求完全隐藏) */
+.page-button span {
+    display: none;
+    /* 默认隐藏数字，这是播放器 */
+}
+
+/* 如果需要在 Hover 时显示，可以解除注释，但根据需求 '播放的时候就不要按钮显示数字' -> 彻底隐藏 */
+/* .page-button:hover span { opacity: 1; display: block; } */
+
+/* 悬停效果 */
+.page-button:hover {
+    transform: translate(-50%, -50%) scale(1.15);
+    background: rgba(255, 255, 255, 0.4);
+    border-color: white;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* 呼吸动画 (涟漪) */
+.page-button::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    animation: ripple 2s infinite;
+    z-index: -1;
+}
+
+@keyframes ripple {
+    0% {
+        width: 100%;
+        height: 100%;
+        opacity: 0.8;
+        border-width: 2px;
+    }
+
+    100% {
+        width: 200%;
+        height: 200%;
+        opacity: 0;
+        border-width: 0;
+    }
+}
+
+/* 激活状态 */
+.page-button.active,
+.canvas-button.active {
+    background: linear-gradient(135deg, #ff9800, #ff5722) !important;
+    border-color: #ffcc80 !important;
+    animation: pulse-active 1.5s infinite;
+}
+
+.page-button.active::after {
+    border-color: transparent transparent transparent rgba(255, 255, 255, 0.9);
+}
+
+@keyframes pulse-active {
+    0% {
+        transform: translate(-50%, -50%) scale(1.1);
+        box-shadow: 0 0 0 0 rgba(255, 87, 34, 0.7);
+    }
+
+    70% {
+        transform: translate(-50%, -50%) scale(1.15);
+        box-shadow: 0 0 0 20px rgba(255, 87, 34, 0);
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(1.1);
+        box-shadow: 0 0 0 0 rgba(255, 87, 34, 0);
+    }
+}
+
+/* 播放状态 - 显示暂停图标（双竖线）*/
+.page-button.playing::after {
+    border: none;
+    width: 14px;
+    height: 16px;
+    border-left: 4px solid white;
+    border-right: 4px solid white;
+    background: transparent;
+    margin-left: 0;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+    box-sizing: border-box;
+}
+
+/* 暂停状态 - 黄色高亮 + 播放图标 */
+.page-button.paused {
+    background: rgba(255, 193, 7, 0.8) !important;
+    border-color: #FFC107 !important;
+    box-shadow: 0 0 15px rgba(255, 193, 7, 0.6);
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+.page-button.paused::after {
+    /* 复用默认三角形，确保颜色 */
+    border-color: transparent transparent transparent white;
+}
+
+/* B. 编辑器拖拽点 (Editor Button) */
+/* 继承大部分 Page Button 的美学，但保留编辑功能 */
+.canvas-button {
+    position: absolute;
+    width: 48px;
+    /* 增大尺寸以匹配 Page Button */
+    height: 48px;
+    border-radius: 50%;
+    /* 玻璃拟态 复用 */
+    background: rgba(255, 255, 255, 0.35);
+    /* 稍微不透明一点以便看清文字 */
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* 字体样式 - 用于显示序号 */
+    font-weight: 700;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    font-size: 1.1rem;
+
+    cursor: move;
+    /* 保持拖拽手势 */
+    z-index: 20;
+    transition: transform 0.2s, box-shadow 0.2s;
+    user-select: none;
+}
+
+/* 编辑器核心：播放三角形 (和播放器一致) */
+.canvas-button::after {
+    content: '';
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 8px 0 8px 14px;
+    border-color: transparent transparent transparent white;
+    margin-left: 4px;
+    /* 视觉居中 */
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    transition: all 0.3s ease;
+}
+
+/* 编辑器播放状态 - 显示暂停图标 */
+.canvas-button.playing::after {
+    border: none;
+    width: 14px;
+    height: 16px;
+    border-left: 4px solid white;
+    border-right: 4px solid white;
+    background: transparent;
+    margin-left: 0;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+    box-sizing: border-box;
+}
+
+/* 编辑器特有：数字角标 */
+.canvas-button::before {
+    content: attr(data-display-index);
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: var(--primary-color);
+    /* 紫色背景 */
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 2;
+    /* 确保在最上层 */
+}
+
+.canvas-button:hover {
+    transform: translate(-50%, -50%) scale(1.15);
+    box-shadow: 0 6px 15px rgba(106, 17, 203, 0.3);
+    border-color: white;
+    background: rgba(255, 255, 255, 0.5);
+}
+
+/* 选中编辑状态 */
+.canvas-button.active {
+    background: linear-gradient(135deg, #6a11cb, #2575fc) !important;
+    border-color: white !important;
+    color: white !important;
+}
+
+/* =========================================
+   阅读模式 (Reading Mode / Zen Mode)
+   ========================================= */
+
+body.reading-mode .header,
+body.reading-mode .status-bar,
+body.reading-mode .edit-btn,
+body.reading-mode #help-modal {
+    display: none !important;
+}
+
+/* ... 以下保持不变 ... */
+body.reading-mode {
+    background: #1a1a1a;
+    /* 深色背景强调内容 */
+}
+
+body.reading-mode .main-container {
+    padding: 0;
+    margin: 0;
+    background: #1a1a1a;
+}
+
+body.reading-mode .book-view {
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+body.reading-mode .page-image-container {
+    padding: 0;
+    background: transparent;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 核心逻辑：自适应缩放 */
+body.reading-mode .page-content-wrapper {
+    margin: auto;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s ease;
+}
+
+/* 情况A: 竖版页面 (默认) - Ratio ~0.706 */
+body.reading-mode .page-content-wrapper:not(.landscape) {
+    /* 默认假设屏幕较宽（桌面），以高度为基准 */
+    height: 100vh;
+    width: auto;
+    aspect-ratio: 595 / 842;
+}
+
+/* 如果屏幕比页面更窄 (手机竖屏) -> 以宽度为基准 */
+@media (max-aspect-ratio: 595/842) {
+    body.reading-mode .page-content-wrapper:not(.landscape) {
+        width: 100vw;
+        height: auto;
+    }
+}
+
+/* 情况B: 横版页面 (.landscape) - Ratio ~1.415 */
+body.reading-mode .page-content-wrapper.landscape {
+    /* 默认假设屏幕较窄，以宽度为基准 */
+    width: 100vw;
+    height: auto;
+    aspect-ratio: 842 / 595;
+}
+
+/* 如果屏幕比页面更宽 (桌面显示横版) -> 以高度为基准 */
+@media (min-aspect-ratio: 842/595) {
+    body.reading-mode .page-content-wrapper.landscape {
+        height: 100vh;
+        width: auto;
+    }
+}
+
+/* Toast 提示样式 */
+.toast-message {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 2000;
+    pointer-events: none;
+}
+
+.toast-message.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+/* =========================================
+   移动端/iPad 适配 & 阅读模式悬浮栏
+   ========================================= */
+
+/* 阅读模式下，将控制栏改为底部悬浮 */
+body.reading-mode .controls {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 500px;
+    background: rgba(20, 20, 20, 0.85); /* 深色半透明 */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 10px 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex !important; /* 强制显示 */
+    justify-content: space-between;
+}
+
+/* 适配阅读模式下的按钮样式 (深色背景) */
+body.reading-mode .btn {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    min-height: 40px;
+}
+
+body.reading-mode .btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-2px);
+}
+
+body.reading-mode .btn-primary {
+    background: rgba(106, 17, 203, 0.6); /* 稍微保留一点品牌色 */
+    border-color: transparent;
+}
+
+body.reading-mode .btn-primary:hover {
+    background: rgba(106, 17, 203, 0.8);
+}
+
+/* 移动端优化 (Phone) */
+@media (max-width: 600px) {
+    /* 悬浮栏调整 */
+    body.reading-mode .controls {
+        bottom: 15px;
+        width: 95%;
+        padding: 8px 15px;
+        gap: 8px;
+    }
+
+    body.reading-mode .btn {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+}
+
+/* iPad 优化 */
+@media (min-width: 601px) and (max-width: 1024px) {
+    body.reading-mode .controls {
+        bottom: 30px;
+        width: 70%;
+    }
+}

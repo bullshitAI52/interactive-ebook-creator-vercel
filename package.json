@@ -1,0 +1,29 @@
+{
+  "name": "interactive-ebook-creator",
+  "version": "1.0.0",
+  "description": "这是一个**所见即所得**的网页版点读机制作工具。哪怕不懂代码，也可以像做 PPT 一样，为您孩子制作专属的点读教材。",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "tauri": "tauri"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bullshitAI52/interactive-ebook-creator.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bullshitAI52/interactive-ebook-creator/issues"
+  },
+  "homepage": "https://github.com/bullshitAI52/interactive-ebook-creator#readme",
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.9.6",
+    "http-server": "^14.1.1"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.9.1",
+    "@tauri-apps/plugin-fs": "^2.4.4"
+  }
+}

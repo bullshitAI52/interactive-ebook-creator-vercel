@@ -1,0 +1,1491 @@
+{
+  "pages": {
+    "page1": {
+      "image": "images/1-1.webp",
+      "sequence": [],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page2": {
+      "image": "images/1-2.webp",
+      "sequence": [],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page3": {
+      "image": "images/1-3.webp",
+      "sequence": [],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page4": {
+      "image": "images/1-4.webp",
+      "sequence": [],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page5": {
+      "image": "images/img_001.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page6": {
+      "image": "images/img_002.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.922,
+          "y": 0.462,
+          "pos": 0,
+          "override": "01 Unit 1 Listen and chant.mp3"
+        },
+        {
+          "x": 0.875,
+          "y": 0.785812351543943,
+          "pos": 1,
+          "override": "02 Unit 1 Listen and sing.mp3"
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page7": {
+      "image": "images/img_003.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.418,
+          "y": 0.172,
+          "pos": 0,
+          "override": "03 Unit 1 A Let's talk.mp3"
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page8": {
+      "image": "images/img_004.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.154,
+          "y": 0.102,
+          "pos": 0,
+          "override": "04 Unit 1 A Let's learn.mp3"
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page9": {
+      "image": "images/img_005.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.42814814814814817,
+          "y": 0.12780285035629452,
+          "pos": 0,
+          "override": "05 Unit 1 A Let's spell-1.mp3"
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page10": {
+      "image": "images/img_006.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.486,
+          "y": 0.162,
+          "pos": 0,
+          "override": "06 Unit 1 B Let's talk.mp3"
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page11": {
+      "image": "images/img_007.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.403,
+          "y": 0.125812351543943,
+          "pos": 1,
+          "override": "07 Unit 1 B Let's learn.mp3"
+        },
+        {
+          "x": 0.47,
+          "y": 0.555,
+          "pos": 1,
+          "override": "08 Unit 1 B Listen and do.mp3"
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page12": {
+      "image": "images/img_008.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.5391043771043771,
+          "y": 0.1538147268408551,
+          "pos": 0,
+          "override": "09 Unit 1 B Read and write.mp3"
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page13": {
+      "image": "images/img_009.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page14": {
+      "image": "images/img_010.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page15": {
+      "image": "images/img_011.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.375949494949495,
+          "y": 0.07624940617577197,
+          "pos": 3,
+          "override": "10 Unit 1 Reading time.mp3"
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page16": {
+      "image": "images/img_012.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page17": {
+      "image": "images/img_013.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page18": {
+      "image": "images/img_014.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.9284545454545454,
+          "y": 0.45227315914489313,
+          "pos": 0,
+          "override": "01 Unit 2 Listen and chant.mp3"
+        },
+        {
+          "x": 0.8853299663299664,
+          "y": 0.7736033254156769,
+          "pos": 1,
+          "override": "02 Unit 2 Listen and sing.mp3"
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page19": {
+      "image": "images/img_015.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.36436700336700334,
+          "y": 0.17462470308788597,
+          "pos": 0,
+          "override": "03 Unit 2 A Let's talk.mp3"
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page20": {
+      "image": "images/img_016.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.145,
+          "y": 0.117,
+          "pos": 0,
+          "override": "04 Unit 2 A Let's learn.mp3"
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page21": {
+      "image": "images/img_017.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.5863670033670033,
+          "y": 0.17075059382422803,
+          "pos": 1,
+          "override": "05 Unit 2 A Let's spell-1.mp3"
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page22": {
+      "image": "images/img_018.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.14,
+          "y": 0.167,
+          "pos": 0,
+          "override": "06 Unit 2 B Let's talk.mp3"
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page23": {
+      "image": "images/img_019.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.422,
+          "y": 0.129,
+          "pos": 0,
+          "override": "07 Unit 2 B Let's learn.mp3"
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page24": {
+      "image": "images/img_020.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.137,
+          "y": 0.093,
+          "pos": 0,
+          "override": "08 Unit 2 B Read and write.mp3"
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page25": {
+      "image": "images/img_021.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page26": {
+      "image": "images/img_022.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page27": {
+      "image": "images/img_023.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.381,
+          "y": 0.101,
+          "pos": 0,
+          "override": "09 Unit 2 Reading time.mp3"
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page28": {
+      "image": "images/img_024.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page29": {
+      "image": "images/img_025.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page30": {
+      "image": "images/img_026.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.935,
+          "y": 0.406,
+          "pos": 0,
+          "override": "01 Unit 3 Listen and chant.mp3"
+        },
+        {
+          "x": 0.887,
+          "y": 0.842,
+          "pos": 1,
+          "override": "02 Unit 3 Listen and sing.mp3"
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page31": {
+      "image": "images/img_027.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.365,
+          "y": 0.171,
+          "pos": 0,
+          "override": "03 Unit 3 A Let's talk.mp3"
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page32": {
+      "image": "images/img_028.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.204,
+          "y": 0.109,
+          "pos": 0,
+          "override": "04 Unit 3 A Let's learn.mp3"
+        },
+        {
+          "x": 0.2,
+          "y": 0.582,
+          "pos": 1,
+          "override": "05 Unit 3 A Listen and do.mp3"
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page33": {
+      "image": "images/img_029.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.7541212121212122,
+          "y": 0.16176009501187644,
+          "pos": 0,
+          "override": "06 Unit 3 A Let's spell-1.mp3"
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page34": {
+      "image": "images/img_030.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.488,
+          "y": 0.162,
+          "pos": 1,
+          "override": "07 Unit 3 B Let's talk.mp3"
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page35": {
+      "image": "images/img_031.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.11,
+          "y": 0.181,
+          "pos": 0,
+          "override": "08 Unit 3 B Let's learn.mp3"
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page36": {
+      "image": "images/img_032.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.613,
+          "y": 0.159,
+          "pos": 1,
+          "override": "09 Unit 3 B Read and write.mp3"
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page37": {
+      "image": "images/img_033.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page38": {
+      "image": "images/img_034.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page39": {
+      "image": "images/img_035.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.379,
+          "y": 0.065,
+          "pos": 0,
+          "override": "10 Unit 3 Reading time.mp3"
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page40": {
+      "image": "images/img_036.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page41": {
+      "image": "images/img_037.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page42": {
+      "image": "images/img_038.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.886,
+          "y": 0.762,
+          "pos": 3,
+          "override": "01 Unit 4 Listen and chant.mp3"
+        },
+        {
+          "x": 0.923,
+          "y": 0.449,
+          "pos": 4,
+          "override": "02 Unit 4 Listen and sing.mp3"
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page43": {
+      "image": "images/img_039.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.363,
+          "y": 0.19,
+          "pos": 0,
+          "override": "03 Unit 4 A Let's talk.mp3"
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page44": {
+      "image": "images/img_040.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.21,
+          "y": 0.118,
+          "pos": 1,
+          "override": "04 Unit 4 A Let's learn.mp3"
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page45": {
+      "image": "images/img_041.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.59,
+          "y": 0.162,
+          "pos": 0,
+          "override": "05 Unit 4 A Let's spell-1.mp3"
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page46": {
+      "image": "images/img_042.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.488,
+          "y": 0.18,
+          "pos": 4,
+          "override": "06 Unit 4 B Let's talk.mp3"
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page47": {
+      "image": "images/img_043.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.088,
+          "y": 0.13,
+          "pos": 0,
+          "override": "07 Unit 4 B Let's learn.mp3"
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page48": {
+      "image": "images/img_044.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.595,
+          "y": 0.154,
+          "pos": 0,
+          "override": "08 Unit 4 B Read and write.mp3"
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page49": {
+      "image": "images/img_045.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.467003367003367,
+          "y": 0.22404988123515435,
+          "pos": 0
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page50": {
+      "image": "images/img_046.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.20437710437710438,
+          "y": 0.11359857482185268,
+          "pos": 0
+        },
+        {
+          "x": 0.18855218855218853,
+          "y": 0.5526722090261282,
+          "pos": 4
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page51": {
+      "image": "images/img_047.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.391,
+          "y": 0.065,
+          "pos": 0,
+          "override": "09 Unit 4 Reading time.mp3"
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page52": {
+      "image": "images/img_048.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.19932659932659932,
+          "y": 0.10290973871733963,
+          "pos": 0
+        },
+        {
+          "x": 0.18855218855218853,
+          "y": 0.6583729216152019,
+          "pos": 4
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page53": {
+      "image": "images/img_049.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page54": {
+      "image": "images/img_050.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.9215488215488215,
+          "y": 0.4520783847980997,
+          "pos": 0
+        },
+        {
+          "x": 0.8821548821548821,
+          "y": 0.7711995249406175,
+          "pos": 4
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page55": {
+      "image": "images/img_051.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.3686868686868687,
+          "y": 0.19596199524940616,
+          "pos": 0
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page56": {
+      "image": "images/img_052.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.20774410774410773,
+          "y": 0.11478622327790969,
+          "pos": 0
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page57": {
+      "image": "images/img_053.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page58": {
+      "image": "images/img_054.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page59": {
+      "image": "images/img_055.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page60": {
+      "image": "images/img_056.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page61": {
+      "image": "images/img_057.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page62": {
+      "image": "images/img_058.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page63": {
+      "image": "images/img_059.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page64": {
+      "image": "images/img_060.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page65": {
+      "image": "images/img_061.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page66": {
+      "image": "images/img_062.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page67": {
+      "image": "images/img_063.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page68": {
+      "image": "images/img_064.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page69": {
+      "image": "images/img_065.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page70": {
+      "image": "images/img_066.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.4814814814814815,
+          "y": 0.166270783847981,
+          "pos": 0
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page71": {
+      "image": "images/img_067.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.09259259259259259,
+          "y": 0.12826603325415675,
+          "pos": 0
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page72": {
+      "image": "images/img_068.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page73": {
+      "image": "images/img_069.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page74": {
+      "image": "images/img_070.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page75": {
+      "image": "images/img_071.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page76": {
+      "image": "images/img_072.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page77": {
+      "image": "images/img_073.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page78": {
+      "image": "images/img_074.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page79": {
+      "image": "images/img_075.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page80": {
+      "image": "images/img_076.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page81": {
+      "image": "images/img_077.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page82": {
+      "image": "images/img_078.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page83": {
+      "image": "images/img_079.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.10773400673400675,
+          "y": 0.23418764845605702,
+          "pos": 0,
+          "override": "Unit 1 单词音频.mp3"
+        },
+        {
+          "x": 0.705,
+          "y": 0.297,
+          "pos": 1,
+          "override": "Unit 2 单词音频.mp3"
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page84": {
+      "image": "images/img_080.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.132,
+          "y": 0.18,
+          "pos": 0,
+          "override": "U3.mp3"
+        },
+        {
+          "x": 0.109,
+          "y": 0.622,
+          "pos": 1,
+          "override": "U4.mp3"
+        },
+        {
+          "x": 0.812,
+          "y": 0.435,
+          "pos": 2,
+          "override": "U5.mp3"
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page85": {
+      "image": "images/img_081.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.249,
+          "y": 0.108,
+          "pos": 2,
+          "override": "U6.mp3"
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page86": {
+      "image": "images/img_082.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.11178451178451179,
+          "y": 0.2513657957244655,
+          "pos": 0
+        },
+        {
+          "x": 0.12289562289562289,
+          "y": 0.6254750593824228,
+          "pos": 1
+        },
+        {
+          "x": 0.793939393939394,
+          "y": 0.338064133016627,
+          "pos": 2
+        },
+        {
+          "x": 0.7111111111111111,
+          "y": 0.6358076009501187,
+          "pos": 3
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page87": {
+      "image": "images/img_083.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.2599326599326599,
+          "y": 0.12785035629453678,
+          "pos": 0
+        },
+        {
+          "x": 0.31986531986531985,
+          "y": 0.2798693586698337,
+          "pos": 1
+        },
+        {
+          "x": 0.8747474747474747,
+          "y": 0.2525534441805225,
+          "pos": 2
+        },
+        {
+          "x": 0.302020202020202,
+          "y": 0.5087292161520189,
+          "pos": 3
+        },
+        {
+          "x": 0.8636363636363636,
+          "y": 0.6049287410926365,
+          "pos": 4
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page88": {
+      "image": "images/img_084.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.14983164983164984,
+          "y": 0.07482185273159145,
+          "pos": 0
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page89": {
+      "image": "images/img_085.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    },
+    "page90": {
+      "image": "images/img_086.webp",
+      "sequence": [
+        0,
+        1,
+        2
+      ],
+      "buttons": [
+        {
+          "x": 0.23804713804713803,
+          "y": 0.04946555819477431,
+          "pos": 0
+        }
+      ],
+      "imageSettings": {
+        "orientation": "portrait"
+      }
+    }
+  },
+  "audioPool": [],
+  "audioBase": "audio/"
+}

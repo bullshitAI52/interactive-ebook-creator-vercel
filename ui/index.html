@@ -1,0 +1,1571 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="互动点读电子书播放器 - 点击页面按钮播放音频内容">
+    <title>互动点读电子书</title>
+
+    <!-- 外部样式表 -->
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/dark-theme.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #f0f0f0;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            padding: 12px 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .header .subtitle {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header-text {
+            flex: 1;
+            text-align: left;
+        }
+
+        .header-actions {
+            margin-left: 20px;
+        }
+
+        .edit-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            text-decoration: none;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .edit-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .edit-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .book-view {
+            flex: 1;
+            position: relative;
+            background: white;
+            margin: 10px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        .page-image-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* A4比例虚线框样式 */
+        .a4-outline {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .a4-border {
+            border: 2px dashed rgba(106, 17, 203, 0.5);
+            background: rgba(106, 17, 203, 0.05);
+            box-sizing: border-box;
+        }
+
+        .a4-label {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(106, 17, 203, 0.8);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+
+        /* 布局调整：确保按钮和图片使用相同的坐标系 */
+        .page-image-container {
+            flex: 1;
+            position: relative;
+            background: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            padding: 20px;
+        }
+
+        /* 核心包装器：维持 A4 比例 */
+        .page-content-wrapper {
+            position: relative;
+            background: white;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+
+            /* 默认竖版 A4 (595/842 = 0.706..) */
+            aspect-ratio: 595 / 842;
+
+            /* 自适应逻辑：在容器内尽可能大，但不溢出 */
+            height: 100%;
+            width: auto;
+            max-width: 100%;
+        }
+
+        /* 横版 A4 */
+        .page-content-wrapper.landscape {
+            aspect-ratio: 842 / 595;
+            width: 100%;
+            height: auto;
+            max-height: 100%;
+        }
+
+        /* 移动端竖屏适配：如果屏幕很窄，让它撑满宽度 */
+        @media (max-width: 600px) {
+            .page-content-wrapper {
+                width: 100% !important;
+                height: auto !important;
+            }
+        }
+
+        #page-image {
+            width: 100%;
+            height: 100%;
+            object-fit: fill;
+            /* Wrapper 已经控制了比例 */
+            display: none;
+            /* JS 会控制显示 */
+            z-index: 1;
+        }
+
+        .button-area {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        /* 按钮区域 */
+        .page-button {
+            pointer-events: auto;
+            position: absolute;
+            transform: translate(-50%, -50%);
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            /* 玻璃拟态背景 */
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 10;
+        }
+
+        /* 内部核心播放图标 */
+        .page-button::after {
+            content: '';
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 8px 0 8px 14px;
+            border-color: transparent transparent transparent white;
+            margin-left: 4px;
+            /* 视觉居中校正 */
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+            transition: all 0.3s ease;
+        }
+
+        /* 仍然保留数字，但做得很小很精致，放在右下角或者 hover 显示 */
+        .page-button span {
+            position: absolute;
+            bottom: -20px;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 8px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .page-button:hover span {
+            opacity: 1;
+        }
+
+        /* 悬停效果 */
+        .page-button:hover {
+            transform: translate(-50%, -50%) scale(1.15);
+            background: rgba(255, 255, 255, 0.4);
+            border-color: white;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 呼吸动画 (涟漪) */
+        .page-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            animation: ripple 2s infinite;
+            z-index: -1;
+        }
+
+        @keyframes ripple {
+            0% {
+                width: 100%;
+                height: 100%;
+                opacity: 0.8;
+                border-width: 2px;
+            }
+
+            100% {
+                width: 200%;
+                height: 200%;
+                opacity: 0;
+                border-width: 0;
+            }
+        }
+
+        /* 激活状态 */
+        .page-button.active {
+            background: linear-gradient(135deg, #ff9800, #ff5722) !important;
+            border-color: #ffcc80 !important;
+            animation: pulse-active 1.5s infinite;
+        }
+
+        .page-button.active::after {
+            border-color: transparent transparent transparent rgba(255, 255, 255, 0.9);
+        }
+
+        @keyframes pulse-active {
+            0% {
+                transform: translate(-50%, -50%) scale(1.1);
+                box-shadow: 0 0 0 0 rgba(255, 87, 34, 0.7);
+            }
+
+            70% {
+                transform: translate(-50%, -50%) scale(1.15);
+                box-shadow: 0 0 0 20px rgba(255, 87, 34, 0);
+            }
+
+            100% {
+                transform: translate(-50%, -50%) scale(1.1);
+                box-shadow: 0 0 0 0 rgba(255, 87, 34, 0);
+            }
+        }
+
+        .controls {
+            padding: 15px 20px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(106, 17, 203, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .btn-secondary:hover {
+            background: #e8e8e8;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .btn-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+        }
+
+        .status-bar {
+            padding: 10px 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e0e0e0;
+            font-size: 0.9rem;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #4caf50;
+        }
+
+        .status-indicator.playing {
+            background: #ff9800;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #6a11cb;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .error-message {
+            color: #ff4444;
+            text-align: center;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            margin: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .page-indicator {
+            font-size: 0.9rem;
+            color: #666;
+            background: #f5f5f5;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        /* iPad 优化 */
+        @media (max-width: 1024px) {
+            .header h1 {
+                font-size: 1.3rem;
+            }
+
+            .btn {
+                padding: 14px 16px;
+                font-size: 0.95rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .nav-buttons {
+                width: 100%;
+            }
+
+            .status-bar {
+                flex-direction: column;
+                gap: 8px;
+                align-items: flex-start;
+            }
+        }
+
+        /* 模态框样式 */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-xl);
+            animation: fadeIn 0.3s ease;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow: auto;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.3rem;
+            color: var(--text-primary);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-circle);
+            transition: all var(--transition-normal);
+        }
+
+        .modal-close:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 20px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid var(--border-light);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="header-text">
+                <h1>互动点读电子书</h1>
+                <div class="subtitle">点击页面上的按钮播放音频/视频</div>
+            </div>
+            <div class="header-actions">
+                <button id="open-config-btn" class="edit-btn" title="打开配置文件 (Open book.json)"
+                    style="border: none; cursor: pointer;">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z" />
+                    </svg>
+                    打开书
+                </button>
+                <input type="file" id="config-upload-input" accept=".json,.zip" style="display: none;">
+
+                <button id="theme-toggle-btn" class="edit-btn" title="切换明暗主题 (T)"
+                    style="border: none; cursor: pointer; margin-left: 8px;">
+                    <svg id="theme-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    <span id="theme-text">深色</span>
+                </button>
+                <button id="help-btn" class="edit-btn" title="快捷键帮助 (?)"
+                    style="border: none; cursor: pointer; margin-left: 8px;">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z" />
+                    </svg>
+                    帮助
+                </button>
+
+                <button id="reading-mode-btn" class="edit-btn" title="阅读模式 (ESC退出)" style="margin-left: 8px;">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
+                    </svg>
+                    阅读模式
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="book-view">
+            <div class="page-image-container">
+                <div id="page-content-wrapper" class="page-content-wrapper">
+                    <img id="page-image" alt="当前页面">
+                    <div class="button-area" id="button-area"></div>
+                </div>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <div>正在加载电子书...</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="nav-buttons">
+                <button id="prev-btn" class="btn btn-secondary">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z" />
+                    </svg>
+                    上一页
+                </button>
+                <button id="auto-play-btn" class="btn btn-secondary" title="自动朗读当前页并翻页">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M8 5v14l11-7z" />
+                    </svg>
+                    自动朗读
+                </button>
+                <button id="next-btn" class="btn btn-primary">
+                    下一页
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="status-bar">
+        <div class="status-item">
+            <div class="status-indicator" id="status-indicator"></div>
+            <span id="status-text">准备就绪</span>
+        </div>
+        <div class="page-indicator">
+            页面: <span id="current-page-display">-</span> / <span id="total-pages-display">-</span>
+        </div>
+    </div>
+
+    <!-- 快捷键帮助模态框 -->
+    <div id="help-modal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3>⌨️ 键盘快捷键</h3>
+                <button class="modal-close" id="close-help-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="display: grid; grid-template-columns: 150px 1fr; gap: 12px; font-size: 0.9rem;">
+                    <div style="font-weight: 600;">← →</div>
+                    <div>上一页 / 下一页</div>
+
+                    <div style="font-weight: 600;">空格</div>
+                    <div>暂停 / 继续播放</div>
+
+                    <div style="font-weight: 600;">T</div>
+                    <div>切换明暗主题</div>
+
+                    <div style="font-weight: 600;">F</div>
+                    <div>全屏播放</div>
+
+
+
+                    <div style="font-weight: 600;">?</div>
+                    <div>显示/隐藏此帮助</div>
+
+                    <div style="font-weight: 600;">ESC</div>
+                    <div>退出全屏 / 关闭帮助</div>
+                </div>
+
+                <div
+                    style="margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border-light); color: var(--text-secondary); font-size: 0.85rem;">
+                    <p>💡 提示:点击页面上的按钮播放对应的音频内容</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="got-it-btn">知道了</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/theme-manager.js"></script>
+    <script src="js/player.js"></script>
+    <script>
+        // 初始化主题管理器
+        const themeManager = new ThemeManager();
+
+        // 主题切换功能
+        const themeToggleBtn = document.getElementById('theme-toggle-btn');
+        const themeIcon = document.getElementById('theme-icon');
+        const themeText = document.getElementById('theme-text');
+
+        function updateThemeButton() {
+            const currentTheme = themeManager.getCurrentTheme();
+            if (currentTheme === 'dark') {
+                themeIcon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+                themeText.textContent = '浅色';
+            } else {
+                themeIcon.innerHTML = '<path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>';
+                themeText.textContent = '深色';
+            }
+        }
+
+        themeToggleBtn.addEventListener('click', () => {
+            themeManager.toggleTheme();
+            themeManager.markManualTheme();
+            updateThemeButton();
+        });
+
+        updateThemeButton();
+
+        // 帮助模态框功能
+        const helpModal = document.getElementById('help-modal');
+        const helpBtn = document.getElementById('help-btn');
+        const closeHelpBtn = document.getElementById('close-help-modal');
+        const gotItBtn = document.getElementById('got-it-btn');
+
+        function showHelpModal() {
+            helpModal.style.display = 'flex';
+        }
+
+        function hideHelpModal() {
+            helpModal.style.display = 'none';
+        }
+
+        helpBtn.addEventListener('click', showHelpModal);
+        closeHelpBtn.addEventListener('click', hideHelpModal);
+        gotItBtn.addEventListener('click', hideHelpModal);
+
+        // 阅读模式功能
+        const readingModeBtn = document.getElementById('reading-mode-btn');
+
+        function toggleReadingMode() {
+            document.body.classList.toggle('reading-mode');
+
+            // 提示用户如何退出
+            if (document.body.classList.contains('reading-mode')) {
+                showToast('按 ESC 键退出阅读模式');
+            }
+        }
+
+        function exitReadingMode() {
+            document.body.classList.remove('reading-mode');
+        }
+
+        readingModeBtn.addEventListener('click', toggleReadingMode);
+
+        // ESC 键退出阅读模式
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && document.body.classList.contains('reading-mode')) {
+                exitReadingMode();
+            }
+        });
+
+        // 简单的 Toast 提示
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast-message';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            // 动画
+            requestAnimationFrame(() => {
+                toast.classList.add('show');
+            });
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 300);
+            }, 3000);
+        }
+
+        // 配置文件上传加载功能
+        const openConfigBtn = document.getElementById('open-config-btn');
+        const configUploadInput = document.getElementById('config-upload-input');
+
+        openConfigBtn.addEventListener('click', () => {
+            configUploadInput.click();
+        });
+
+        async function handleConfigLoad(file) {
+            if (!file) return;
+
+            // 格式检查
+            if (!file.name.endsWith('.json') && !file.name.endsWith('.zip')) {
+                alert('请选择 .json 或 .zip 格式的文件');
+                return;
+            }
+
+            // 处理 ZIP
+            if (file.name.endsWith('.zip')) {
+                if (typeof JSZip === 'undefined') {
+                    alert('JSZip 库未加载，请检查网络或刷新页面');
+                    return;
+                }
+
+                const loading = document.getElementById('loading');
+                if (loading) {
+                    loading.style.display = 'flex';
+                    loading.querySelector('div:last-child').textContent = '正在解压资源...';
+                }
+
+                try {
+                    const zip = await new JSZip().loadAsync(file);
+
+                    // 1. 读取 book.json
+                    const configCtx = await zip.file("book.json").async("text");
+                    const config = JSON.parse(configCtx);
+
+                    if (!config.pages) throw new Error('无效的配置文件：缺少 pages 字段');
+
+                    // 2. 处理资源 (Images & Audio) -> Blob URLs
+                    const assetMap = new Map(); // path -> blobUrl
+                    const entries = [];
+                    zip.forEach((relativePath, zipEntry) => {
+                        if (!zipEntry.dir) entries.push({ path: relativePath, entry: zipEntry });
+                    });
+
+                    // 并行解压
+                    await Promise.all(entries.map(async (item) => {
+                        const blob = await item.entry.async("blob");
+                        const blobUrl = URL.createObjectURL(blob);
+                        assetMap.set(item.path, blobUrl);
+                    }));
+
+                    // 3. 更新 Config 中的 Image 引用
+                    Object.keys(config.pages).forEach(pageId => {
+                        const page = config.pages[pageId];
+                        // 尝试匹配 images/filename
+                        if (page.image && assetMap.has(page.image)) {
+                            page.image = assetMap.get(page.image);
+                        } else {
+                            // 尝试模糊匹配，防止路径分隔符问题
+                            // (暂不处理，假设 zip 结构标准)
+                        }
+                    });
+
+                    // 4. 更新 Player 的 Audio Cache
+                    // Player 默认拼接：audioBase + filename
+                    // 我们把 assetMap 中的所有 asset 都塞给 player cache
+                    // 这样 player.playMedia(src) 查 existing cache 时就能找到
+                    if (window.player) {
+                        // 清理旧缓存 (如果需要? 稍微激进，但 ZIP 是一次性加载)
+                        // window.player.audioCache.clear(); 
+                        // 暂时不 clear，允许混合使用
+                        assetMap.forEach((url, path) => {
+                            window.player.audioCache.set(path, url);
+                        });
+                    }
+
+                    // 5. 加载 Config
+                    loadConfigToPlayer(config, file.name);
+
+                } catch (err) {
+                    alert('无法读取 ZIP 文件: ' + err.message);
+                    console.error(err);
+                } finally {
+                    if (loading) loading.style.display = 'none';
+                }
+                return;
+            }
+
+            // 处理 JSON (原有逻辑)
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const config = JSON.parse(e.target.result);
+                    loadConfigToPlayer(config, file.name);
+                } catch (err) {
+                    alert('无法加载配置文件: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function loadConfigToPlayer(config, fileName) {
+            // 验证基本结构
+            if (!config.pages) {
+                throw new Error('无效的配置文件：缺少 pages 字段');
+            }
+
+            if (window.player) {
+                window.player.stop(); // 停止当前播放
+                window.player.book = config;
+                // 重新初始化页面列表
+                const pageIds = window.player.getPageIds();
+                const totalPagesDisplay = document.getElementById('total-pages-display');
+                const statusText = document.getElementById('status-text');
+
+                if (totalPagesDisplay) totalPagesDisplay.textContent = pageIds.length;
+
+                // 触发自定义事件
+                const event = new CustomEvent('book-loaded', { detail: config });
+                document.dispatchEvent(event);
+
+                if (statusText) statusText.textContent = `已加载: ${fileName}`;
+            }
+        }
+
+        configUploadInput.addEventListener('change', (e) => {
+            handleConfigLoad(e.target.files[0]);
+        });
+
+        // 拖拽支持
+        document.body.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            document.body.style.boxShadow = 'inset 0 0 50px rgba(106, 17, 203, 0.2)';
+        });
+
+        document.body.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            document.body.style.boxShadow = 'none';
+        });
+
+        document.body.addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            document.body.style.boxShadow = 'none';
+
+            const files = e.dataTransfer.files;
+            if (files && files.length > 0) {
+                handleConfigLoad(files[0]);
+            }
+        });
+
+        // 点击模态框背景关闭
+        helpModal.addEventListener('click', (e) => {
+            if (e.target === helpModal) {
+                hideHelpModal();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Auto-enable Reading Mode for clean UI
+            document.body.classList.add('reading-mode');
+
+            const player = new InteractiveBookPlayer('book.json');
+            window.player = player;
+            const loading = document.getElementById('loading');
+            const pageImage = document.getElementById('page-image');
+            const buttonArea = document.getElementById('button-area');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const statusIndicator = document.getElementById('status-indicator');
+            const statusText = document.getElementById('status-text');
+            const currentPageDisplay = document.getElementById('current-page-display');
+            const totalPagesDisplay = document.getElementById('total-pages-display');
+
+            let pageIds = [];
+            let currentPageIndex = 0;
+
+            // 监听外部配置加载
+            document.addEventListener('book-loaded', (e) => {
+                const config = e.detail;
+                player.book = config;
+                pageIds = player.getPageIds();
+                totalPagesDisplay.textContent = pageIds.length;
+                // 停止自动播放
+                if (typeof stopAutoPlay === 'function') stopAutoPlay();
+
+                if (pageIds.length > 0) {
+                    showPage(0);
+                } else {
+                    alert('该配置文件没有页面！');
+                }
+                console.log('External config loaded:', config);
+            });
+
+            try {
+                // 加载书籍配置
+                await player.load();
+                pageIds = player.getPageIds();
+
+                if (pageIds.length === 0) {
+                    throw new Error('书籍中没有找到任何页面');
+                }
+
+                // 更新页面计数显示
+                totalPagesDisplay.textContent = pageIds.length;
+
+                // 显示第一页
+                showPage(0);
+
+                // 默认自动开启阅读模式
+                // 延迟一点以确保渲染就绪
+                setTimeout(() => {
+                    if (!document.body.classList.contains('reading-mode')) {
+                        toggleReadingMode();
+                    }
+                }, 500);
+
+                // 隐藏加载界面
+                loading.style.display = 'none';
+
+            } catch (error) {
+                loading.innerHTML = `
+                    <div class="error-message">
+                        <h3>加载失败</h3>
+                        <p style="margin: 10px 0; color: #666; font-size: 0.9rem;">${error.message}</p>
+                        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 15px;">
+                            <button onclick="location.reload()" class="btn btn-primary">
+                                重试
+                            </button>
+                            <label class="btn btn-secondary" style="cursor: pointer;">
+                                📂 打开本书 (.zip / .json)
+                                <input type="file" id="manual-load-input" accept=".json,.zip" style="display: none;">
+                            </label>
+                        </div>
+                    </div>
+                `;
+
+                // 绑定手动加载事件
+                const manualInput = document.getElementById('manual-load-input');
+                if (manualInput) {
+                    manualInput.addEventListener('change', async (e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+
+                        try {
+                            // Check for ZIP
+                            if (file.name.toLowerCase().endsWith('.zip')) {
+                                loading.innerHTML = '<div class="loading-spinner"></div><p>正在解压资源...</p>';
+                                loading.style.display = 'flex';
+
+                                const zip = new JSZip();
+                                const contents = await zip.loadAsync(file);
+
+                                // 1. Find and Parse book.json
+                                const bookFile = Object.values(contents.files).find(f => f.name.match(/book\.json$/i));
+                                if (!bookFile) throw new Error('压缩包内找不到 book.json');
+
+                                const bookText = await bookFile.async('string');
+                                const config = JSON.parse(bookText);
+
+                                // 2. Process Assets
+                                const imagePromises = [];
+                                const audioPromises = [];
+
+                                // Helper to match zip file
+                                const findFile = (path) => {
+                                    // Try exact match first
+                                    let f = contents.file(path);
+                                    if (f) return f;
+                                    // Try with/without leading slash or folder prefix
+                                    const name = path.split('/').pop();
+                                    // Search in all files
+                                    return Object.values(contents.files).find(f => f.name.endsWith(name));
+                                };
+
+                                // Process Images (Replace paths with Blob URLs)
+                                for (const pageId in config.pages) {
+                                    const page = config.pages[pageId];
+                                    if (page.image) {
+                                        const zipFile = findFile(page.image);
+                                        if (zipFile) {
+                                            const blob = await zipFile.async('blob');
+                                            page.image = URL.createObjectURL(blob);
+                                        }
+                                    }
+                                }
+
+                                // Process Audio (Populate Player Cache)
+                                const processAudio = async (path) => {
+                                    if (!path) return;
+                                    const zipFile = findFile(path);
+                                    if (zipFile) {
+                                        const blob = await zipFile.async('blob');
+                                        const url = URL.createObjectURL(blob);
+                                        // Cache with the original path key so player finds it
+                                        // Handle potential base path
+                                        let base = config.audioBase || 'audio/';
+                                        if (!base.endsWith('/')) base += '/';
+
+                                        // If path is just filename, prepend base
+                                        const fullPath = path.startsWith(base) ? path : base + path;
+
+                                        // We cache both to be safe
+                                        player.audioCache.set(path, url);
+                                        player.audioCache.set(fullPath, url);
+                                        // Remove base for bare filename match
+                                        player.audioCache.set(path.split('/').pop(), url);
+                                    }
+                                };
+
+                                // Walk through audio references
+                                if (config.audioPool) {
+                                    for (const audio of config.audioPool) {
+                                        await processAudio(audio);
+                                    }
+                                }
+                                for (const pageId in config.pages) {
+                                    const page = config.pages[pageId];
+                                    if (page.buttons) {
+                                        for (const btn of page.buttons) {
+                                            if (btn.override) await processAudio(btn.override);
+                                        }
+                                    }
+                                }
+
+                                // Apply Config
+                                player.book = config;
+                                pageIds = player.getPageIds();
+                                totalPagesDisplay.textContent = pageIds.length;
+                                showPage(0);
+                                loading.style.display = 'none';
+                                console.log('Loaded ZIP project:', config);
+
+                            } else {
+                                // JSON Load (Legacy)
+                                const reader = new FileReader();
+                                reader.onload = async (event) => {
+                                    try {
+                                        const config = JSON.parse(event.target.result);
+                                        player.book = config;
+                                        pageIds = player.getPageIds();
+                                        totalPagesDisplay.textContent = pageIds.length;
+                                        showPage(0);
+                                        loading.style.display = 'none';
+                                        console.log('Manually loaded config:', config);
+                                    } catch (err) {
+                                        alert('解析 JSON 失败: ' + err.message);
+                                    }
+                                };
+                                reader.readAsText(file);
+                            }
+
+                        } catch (err) {
+                            console.error(err);
+                            alert('读取失败: ' + err.message);
+                            loading.style.display = 'flex'; // Show error state again if needed or reset
+                        }
+                    });
+                }
+                console.error('初始化失败:', error);
+            }
+
+            function showPage(index) {
+                if (index < 0 || index >= pageIds.length) return;
+
+                currentPageIndex = index;
+                const pageId = pageIds[index];
+
+                // 显示页面
+                player.showPage(pageId);
+
+                // 更新页面显示
+                currentPageDisplay.textContent = index + 1;
+
+                // 更新按钮状态
+                prevBtn.disabled = index === 0;
+                nextBtn.disabled = index === pageIds.length - 1;
+
+                // 更新状态
+                updateStatus('页面加载完成');
+
+                // 预加载相邻页面的音频（后台异步）
+                setTimeout(() => {
+                    player.preloadAdjacentPages(index, pageIds);
+                }, 100);
+            }
+
+            function updateStatus(message, isPlaying = false) {
+                statusText.textContent = message;
+                if (isPlaying) {
+                    statusIndicator.className = 'status-indicator playing';
+                } else {
+                    statusIndicator.className = 'status-indicator';
+                }
+            }
+
+            // 监听播放状态变化
+            setInterval(() => {
+                if (player.isPlaying) {
+                    updateStatus('正在播放...', true);
+                } else if (statusText.textContent === '正在播放...') {
+                    updateStatus('页面加载完成', false);
+                }
+            }, 500);
+
+            const autoPlayBtn = document.getElementById('auto-play-btn');
+
+            let isAutoPlaying = false;
+
+            // 停止自动播放辅助函数
+            function stopAutoPlay() {
+                if (!isAutoPlaying) return;
+                isAutoPlaying = false;
+                // 恢复UI状态
+                autoPlayBtn.innerHTML = `
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor">
+                         <path d="M8 5v14l11-7z"/>
+                    </svg>
+                    自动朗读`;
+                autoPlayBtn.classList.remove('btn-primary');
+                autoPlayBtn.classList.add('btn-secondary');
+                player.stop();
+            }
+
+            // 自动播放按钮逻辑
+            if (autoPlayBtn) {
+                autoPlayBtn.addEventListener('click', async () => {
+                    if (isAutoPlaying) {
+                        stopAutoPlay();
+                        return;
+                    }
+
+                    // 开始自动播放
+                    isAutoPlaying = true;
+                    autoPlayBtn.innerHTML = `
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M6 6h12v12H6z"/>
+                        </svg>
+                        停止朗读`;
+                    autoPlayBtn.classList.remove('btn-secondary');
+                    autoPlayBtn.classList.add('btn-primary');
+
+                    // 播放循环
+                    while (isAutoPlaying) {
+                        try {
+                            updateStatus('正在自动朗读...', true);
+                            await player.playPageSequence();
+
+                            if (!isAutoPlaying) break; // 中途停止
+
+                            // 读完当前页，等待一小会儿
+                            await new Promise(r => setTimeout(r, 1000));
+
+                            if (!isAutoPlaying) break;
+
+                            // 翻页
+                            if (currentPageIndex < pageIds.length - 1) {
+                                nextBtn.click(); // 此操作会触发 showPage -> 初始化新页面
+                                // 等待页面加载完成（简单延时，或者依赖 showPage 的同步性）
+                                await new Promise(r => setTimeout(r, 1000));
+                            } else {
+                                stopAutoPlay();
+                                alert('已读完最后一页');
+                                break;
+                            }
+                        } catch (e) {
+                            console.error('Auto play error:', e);
+                            stopAutoPlay();
+                            break;
+                        }
+                    }
+                });
+            }
+
+            // 按钮事件
+            prevBtn.addEventListener('click', () => {
+                stopAutoPlay(); // 手动操作停止自动播放
+                showPage(currentPageIndex - 1);
+            });
+
+            nextBtn.addEventListener('click', () => {
+                stopAutoPlay(); // 手动操作停止自动播放
+                showPage(currentPageIndex + 1);
+            });
+
+            // 键盘导航支持 - 增强版
+            document.addEventListener('keydown', (e) => {
+                // 如果焦点在输入框中，不触发快捷键
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                    return;
+                }
+
+                switch (e.key) {
+                    case 'ArrowLeft':
+                        e.preventDefault();
+                        prevBtn.click();
+                        break;
+
+                    case 'ArrowRight':
+                        e.preventDefault();
+                        nextBtn.click();
+                        break;
+
+                    case ' ':
+                        e.preventDefault();
+                        // 空格键暂停/播放（如果有当前播放的媒体）
+                        if (player.audioElement) {
+                            if (player.audioElement.paused) {
+                                player.audioElement.play();
+                            } else {
+                                player.audioElement.pause();
+                            }
+                        }
+                        break;
+
+                    case 't':
+                    case 'T':
+                        e.preventDefault();
+                        themeToggleBtn.click();
+                        break;
+
+                    case 'f':
+                    case 'F':
+                        e.preventDefault();
+                        // 全屏切换
+                        if (!document.fullscreenElement) {
+                            document.documentElement.requestFullscreen().catch(err => {
+                                console.warn('无法进入全屏:', err);
+                            });
+                        } else {
+                            document.exitFullscreen();
+                        }
+                        break;
+
+
+
+                    case '?':
+                        e.preventDefault();
+                        if (helpModal.style.display === 'none') {
+                            showHelpModal();
+                        } else {
+                            hideHelpModal();
+                        }
+                        break;
+
+                    case 'Escape':
+                        if (helpModal.style.display !== 'none') {
+                            hideHelpModal();
+                        } else if (document.body.classList.contains('reading-mode')) {
+                            // 优先退出阅读模式
+                            exitReadingMode();
+                        } else if (document.fullscreenElement) {
+                            document.exitFullscreen();
+                        }
+                        break;
+                }
+            });
+
+            // 触摸滑动支持 (Swipe Support)
+            let touchStartX = 0;
+            let touchEndX = 0;
+            const minSwipeDistance = 50; // 最小滑动距离
+
+            document.body.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+            }, { passive: true });
+
+            document.body.addEventListener('touchend', (e) => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            }, { passive: true });
+
+            function handleSwipe() {
+                const distance = touchEndX - touchStartX;
+
+                // 确保滑动距离足够
+                if (Math.abs(distance) < minSwipeDistance) return;
+
+                if (distance > 0) {
+                    // 向右滑动 -> 上一页
+                    if (!prevBtn.disabled) {
+                        prevBtn.click();
+                    }
+                } else {
+                    // 向左滑动 -> 下一页
+                    if (!nextBtn.disabled) {
+                        nextBtn.click();
+                    }
+                }
+            }
+
+            // 点击翻页支持 (Click Navigation for Reading Mode)
+            // 左边 30% -> 上一页
+            // 右边 30% -> 下一页
+            // 中间 -> 显示/隐藏帮助或不做处理 (根据 "No other buttons" 需求，暂不处理中间，或者中间可以用来显示 Toast)
+            document.body.addEventListener('click', (e) => {
+                // 仅在阅读模式下生效
+                if (!document.body.classList.contains('reading-mode')) return;
+
+                // 忽略特定的交互元素
+                if (e.target.closest('.page-button') ||
+                    e.target.closest('.controls') || // 理论上 hidden
+                    e.target.closest('.modal') ||
+                    e.target.id === 'reading-mode-btn') {
+                    return;
+                }
+
+                const width = window.innerWidth;
+                const x = e.clientX;
+
+                // 左侧 30%
+                if (x < width * 0.3) {
+                    if (!prevBtn.disabled) {
+                        prevBtn.click();
+                        // 反馈
+                        showToast('上一页');
+                    }
+                }
+                // 右侧 30%
+                else if (x > width * 0.7) {
+                    if (!nextBtn.disabled) {
+                        nextBtn.click();
+                        // 反馈
+                        showToast('下一页');
+                    }
+                }
+            });
+
+            // 导出到全局以便调试
+            window.player = player;
+            window.showPage = showPage;
+
+            // ==========================================
+            // New: Auto-Load ZIP from URL
+            // ==========================================
+            async function loadFromZipBlob(blob) {
+                try {
+                    loading.innerHTML = '<div class="loading-spinner"></div><p>正在读取资源包...</p>';
+                    loading.style.display = 'flex';
+
+                    const zip = new JSZip();
+                    const contents = await zip.loadAsync(blob);
+
+                    // 1. Find book.json
+                    const bookFile = Object.values(contents.files).find(f => f.name.match(/book\.json$/i));
+                    if (!bookFile) throw new Error('压缩包内找不到 book.json');
+
+                    const bookText = await bookFile.async('string');
+                    const config = JSON.parse(bookText);
+
+                    // 2. Process Assets
+                    const findFile = (path) => {
+                        if (!path) return null;
+                        let f = contents.file(path);
+                        if (f) return f;
+                        const name = path.split('/').pop();
+                        return Object.values(contents.files).find(f => f.name.endsWith(name));
+                    };
+
+                    // Images
+                    for (const pageId in config.pages) {
+                        const page = config.pages[pageId];
+                        if (page.image) {
+                            const zipFile = findFile(page.image);
+                            if (zipFile) {
+                                const b = await zipFile.async('blob');
+                                page.image = URL.createObjectURL(b);
+                            }
+                        }
+                    }
+
+                    // Audio
+                    const processAudio = async (path) => {
+                        if (!path) return;
+                        const zipFile = findFile(path);
+                        if (zipFile) {
+                            const b = await zipFile.async('blob');
+                            const url = URL.createObjectURL(b);
+                            // Cache
+                            let base = config.audioBase || 'audio/';
+                            if (!base.endsWith('/')) base += '/';
+
+                            const fullPath = path.startsWith(base) ? path : base + path;
+
+                            player.audioCache.set(path, url);
+                            player.audioCache.set(fullPath, url);
+                            player.audioCache.set(path.split('/').pop(), url);
+                        }
+                    };
+
+                    if (config.audioPool) {
+                        for (const a of config.audioPool) await processAudio(a);
+                    }
+                    for (const pageId in config.pages) {
+                        const p = config.pages[pageId];
+                        if (p.buttons) {
+                            for (const btn of p.buttons) if (btn.override) await processAudio(btn.override);
+                        }
+                    }
+
+                    player.book = config;
+                    pageIds = player.getPageIds();
+                    // Update UI
+                    if (typeof totalPagesDisplay !== 'undefined') totalPagesDisplay.textContent = pageIds.length;
+                    showPage(0);
+                    loading.style.display = 'none';
+                    console.log('Loaded ZIP from URL:', config);
+                } catch (e) {
+                    console.error(e);
+                    alert('加载 ZIP 失败: ' + e.message);
+                    loading.style.display = 'none';
+                }
+            }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const zipUrl = urlParams.get('zip');
+            if (zipUrl) {
+                console.log('Detected zip param:', zipUrl);
+                loading.innerHTML = '<div class="loading-spinner"></div><p>正在下载资源包...</p>';
+                loading.style.display = 'flex';
+                fetch(zipUrl)
+                    .then(res => {
+                        if (!res.ok) throw new Error('Download failed: ' + res.status);
+                        return res.blob();
+                    })
+                    .then(blob => loadFromZipBlob(blob))
+                    .catch(e => {
+                        alert('下载失败: ' + e.message);
+                        loading.style.display = 'none';
+                    });
+            }
+        });
+    </script>
+</body>
+
+</html>
