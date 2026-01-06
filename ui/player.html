@@ -25,6 +25,9 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: #f0f0f0;
             height: 100vh;
+            /* Fallback for browsers that do not support dvh */
+            height: 100dvh;
+            /* Dynamic viewport height for mobile browsers */
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -41,7 +44,8 @@
             flex-direction: column;
             position: relative;
             background: #333;
-            /* Dark background for cinema feel */
+            overflow: hidden;
+            /* Ensure container clips internal overflow */
         }
 
         .book-stage {
@@ -90,6 +94,8 @@
             object-fit: fill;
             /* Ensure it fills wrapper */
             display: block;
+            pointer-events: none;
+            /* Prevent image drag/interactions interfering */
         }
 
         .button-area {
@@ -105,10 +111,14 @@
             background: rgba(0, 0, 0, 0.8);
             color: white;
             padding: 15px;
+            /* Safe Area Support */
+            padding-bottom: calc(15px + env(safe-area-inset-bottom, 0px));
             display: flex;
             justify-content: center;
             gap: 20px;
             z-index: 100;
+            flex-shrink: 0;
+            /* Prevent shrinking */
         }
 
         .btn-control {
