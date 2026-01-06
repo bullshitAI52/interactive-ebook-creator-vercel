@@ -1059,8 +1059,8 @@
                                 重试
                             </button>
                             <label class="btn btn-secondary" style="cursor: pointer;">
-                                手动加载本地 book.json
-                                <input type="file" id="manual-load-input" accept=".json" style="display: none;">
+                                📂 打开本书 (.zip / .json)
+                                <input type="file" id="manual-load-input" accept=".json,.zip" style="display: none;">
                             </label>
                         </div>
                     </div>
@@ -1071,22 +1071,120 @@
                 if (manualInput) {
                     manualInput.addEventListener('change', async (e) => {
                         const file = e.target.files[0];
-                        if (file) {
-                            const reader = new FileReader();
-                            reader.onload = async (event) => {
-                                try {
-                                    const config = JSON.parse(event.target.result);
-                                    player.book = config;
-                                    pageIds = player.getPageIds();
-                                    totalPagesDisplay.textContent = pageIds.length;
-                                    showPage(0);
-                                    loading.style.display = 'none';
-                                    console.log('Manually loaded config:', config);
-                                } catch (err) {
-                                    alert('解析 JSON 失败: ' + err.message);
+                        if (!file) return;
+
+                        try {
+                            // Check for ZIP
+                            if (file.name.toLowerCase().endsWith('.zip')) {
+                                loading.innerHTML = '<div class="loading-spinner"></div><p>正在解压资源...</p>';
+                                loading.style.display = 'flex';
+
+                                const zip = new JSZip();
+                                const contents = await zip.loadAsync(file);
+
+                                // 1. Find and Parse book.json
+                                const bookFile = Object.values(contents.files).find(f => f.name.match(/book\.json$/i));
+                                if (!bookFile) throw new Error('压缩包内找不到 book.json');
+
+                                const bookText = await bookFile.async('string');
+                                const config = JSON.parse(bookText);
+
+                                // 2. Process Assets
+                                const imagePromises = [];
+                                const audioPromises = [];
+
+                                // Helper to match zip file
+                                const findFile = (path) => {
+                                    // Try exact match first
+                                    let f = contents.file(path);
+                                    if (f) return f;
+                                    // Try with/without leading slash or folder prefix
+                                    const name = path.split('/').pop();
+                                    // Search in all files
+                                    return Object.values(contents.files).find(f => f.name.endsWith(name));
+                                };
+
+                                // Process Images (Replace paths with Blob URLs)
+                                for (const pageId in config.pages) {
+                                    const page = config.pages[pageId];
+                                    if (page.image) {
+                                        const zipFile = findFile(page.image);
+                                        if (zipFile) {
+                                            const blob = await zipFile.async('blob');
+                                            page.image = URL.createObjectURL(blob);
+                                        }
+                                    }
                                 }
-                            };
-                            reader.readAsText(file);
+
+                                // Process Audio (Populate Player Cache)
+                                const processAudio = async (path) => {
+                                    if (!path) return;
+                                    const zipFile = findFile(path);
+                                    if (zipFile) {
+                                        const blob = await zipFile.async('blob');
+                                        const url = URL.createObjectURL(blob);
+                                        // Cache with the original path key so player finds it
+                                        // Handle potential base path
+                                        let base = config.audioBase || 'audio/';
+                                        if (!base.endsWith('/')) base += '/';
+
+                                        // If path is just filename, prepend base
+                                        const fullPath = path.startsWith(base) ? path : base + path;
+
+                                        // We cache both to be safe
+                                        player.audioCache.set(path, url);
+                                        player.audioCache.set(fullPath, url);
+                                        // Remove base for bare filename match
+                                        player.audioCache.set(path.split('/').pop(), url);
+                                    }
+                                };
+
+                                // Walk through audio references
+                                if (config.audioPool) {
+                                    for (const audio of config.audioPool) {
+                                        await processAudio(audio);
+                                    }
+                                }
+                                for (const pageId in config.pages) {
+                                    const page = config.pages[pageId];
+                                    if (page.buttons) {
+                                        for (const btn of page.buttons) {
+                                            if (btn.override) await processAudio(btn.override);
+                                        }
+                                    }
+                                }
+
+                                // Apply Config
+                                player.book = config;
+                                pageIds = player.getPageIds();
+                                totalPagesDisplay.textContent = pageIds.length;
+                                showPage(0);
+                                loading.style.display = 'none';
+                                console.log('Loaded ZIP project:', config);
+
+                            } else {
+                                // JSON Load (Legacy)
+                                const reader = new FileReader();
+                                reader.onload = async (event) => {
+                                    try {
+                                        const config = JSON.parse(event.target.result);
+                                        player.book = config;
+                                        pageIds = player.getPageIds();
+                                        totalPagesDisplay.textContent = pageIds.length;
+                                        showPage(0);
+                                        loading.style.display = 'none';
+                                        console.log('Manually loaded config:', config);
+                                    } catch (err) {
+                                        alert('解析 JSON 失败: ' + err.message);
+                                    }
+                                };
+                                reader.readAsText(file);
+                            }
+
+                        } catch (err) {
+                            console.error(err);
+                            alert('读取失败: ' + err.message);
+                            loading.style.display = 'flex'; // Show error state again if needed or reset
                         }
                     });
                 }
