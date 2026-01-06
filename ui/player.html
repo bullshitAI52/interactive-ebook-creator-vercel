@@ -190,7 +190,8 @@
 
     <!-- 初始上传/加载界面 -->
     <div id="uploader-overlay">
-        <div class="upload-box" id="drop-zone">
+        <!-- Default hidden, shown if auto-load fails -->
+        <div class="upload-box" id="drop-zone" style="display: none;">
             <svg class="big-icon" viewBox="0 0 24 24" fill="white">
                 <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
             </svg>
@@ -201,7 +202,8 @@
             </button>
             <input type="file" id="file-input" accept=".zip,.json" style="display:none">
         </div>
-        <div id="loading-status" style="margin-top:20px; display:none;">
+        <!-- Default visible, hidden if load fails -->
+        <div id="loading-status" style="margin-top:20px;">
             <div class="spinner" style="border-top-color:white;"></div>
             <span>正在加载资源...</span>
         </div>
@@ -364,37 +366,46 @@
             // URL Param Auto-Load strategy
             const urlParams = new URLSearchParams(window.location.search);
             const bookUrl = urlParams.get('book') || urlParams.get('config');
-            if (bookUrl) {
-                // Try to fetch it
-                console.log('Auto-loading book from:', bookUrl);
-                // If it's a zip vs json handled inside? 
-                // InteractiveBookPlayer.load() expects JSON URL. 
-                // We need custom logic for ZIP URL.
 
-                fetch(bookUrl).then(async res => {
-                    if (!res.ok) throw new Error('Fetch failed');
-                    const blob = await res.blob();
-                    // Convert blob to file-like object with name
-                    const file = new File([blob], bookUrl.split('/').pop() || 'book.zip');
-                    handleFile(file);
-                }).catch(e => console.error('Auto-load failed', e));
-            } else if (awaitingLocalBook()) {
-                // Check if book.json exists relatively (legacy/exported deployment)
-                // This is for the scenario where player.html sits next to book.json
-                fetch('book.json').then(res => {
-                    if (res.ok) {
-                        player.configUrl = 'book.json';
-                        player.load().then(() => {
+            const showUploader = () => {
+                loadingStatus.style.display = 'none';
+                dropZone.style.display = 'block';
+            };
+
+            const initLoad = async () => {
+                if (bookUrl) {
+                    console.log('Auto-loading book from:', bookUrl);
+                    try {
+                        const res = await fetch(bookUrl);
+                        if (!res.ok) throw new Error('Fetch failed');
+                        const blob = await res.blob();
+                        const file = new File([blob], bookUrl.split('/').pop() || 'book.zip');
+                        handleFile(file);
+                    } catch (e) {
+                        console.error('Auto-load failed', e);
+                        showUploader();
+                    }
+                } else {
+                    console.log('Attempting to auto-load local book.json...');
+                    try {
+                        const res = await fetch('book.json');
+                        if (res.ok) {
+                            player.configUrl = 'book.json';
+                            await player.load();
                             overlay.style.display = 'none';
                             updateUI();
-                        });
+                        } else {
+                            console.log('No local book.json found, showing uploader.');
+                            showUploader();
+                        }
+                    } catch (e) {
+                        console.log('Local load failed, showing uploader.', e);
+                        showUploader();
                     }
-                });
-            }
+                }
+            };
 
-            function awaitingLocalBook() {
-                return !bookUrl;
-            }
+            initLoad();
 
             // --- Controls ---
 
