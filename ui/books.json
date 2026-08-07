@@ -3,7 +3,7 @@
         "title": "人教版五年级英语上册",
         "description": "五年级点读电子书（95页 / 6643个点读位）",
         "cover": "books/covers/grade5-fall.webp",
-        "path": "books/grade5-fall-web/book.json",
+        "path": "books/grade5-fall-web/book.js",
         "type": "json"
     }
 ]
