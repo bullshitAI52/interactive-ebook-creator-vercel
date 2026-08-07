@@ -384,7 +384,8 @@ class InteractiveBookPlayer {
         }
       }
       // Fix: Encode URI for preloader consistency
-      if (mediaSrc) {
+      // 跳过外部域名音频（如有道发音），避免 CORS fetch 失败；播放时用 <audio> 直连即可
+      if (mediaSrc && !/^https?:\/\//.test(mediaSrc)) {
         const encoded = encodeURI(mediaSrc);
         if (!this.audioCache.has(encoded)) audioUrls.add(encoded);
       }
