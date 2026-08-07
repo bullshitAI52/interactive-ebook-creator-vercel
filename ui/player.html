@@ -283,7 +283,7 @@
                 try {
                     let config = null;
 
-                    if (file.name.endsWith('.json')) {
+                    if (file.name.endsWith('.json') || file.name.endsWith('.js')) {
                         const text = await file.text();
                         config = JSON.parse(text);
                         // JSON loading assumes local relative paths work (legacy mode)
