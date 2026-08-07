@@ -108,11 +108,13 @@ class InteractiveBookPlayer {
         btn.className = 'page-button';
         btn.style.left = `${button.x * 100}%`;
         btn.style.top = `${button.y * 100}%`;
+        if (button.width) btn.style.width = `${button.width * 100}%`;
+        if (button.height) btn.style.height = `${button.height * 100}%`;
         btn.dataset.index = index;
 
         // Global Index for Title/Reference
         const globalIndex = globalStart + index + 1;
-        btn.title = `按钮 ${globalIndex} - 点击播放`;
+        btn.title = button.label ? `${button.label} - 点击发音` : `按钮 ${globalIndex} - 点击播放`;
 
         // 添加数字显示 (CSS 已隐藏，但结构保留)
         const numberSpan = document.createElement('span');
