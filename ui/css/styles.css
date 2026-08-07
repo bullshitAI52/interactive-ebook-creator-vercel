@@ -597,40 +597,27 @@ body {
    全局按钮样式更新 (Global Stylish Buttons)
    ========================================= */
 
-/* A. 播放页面的按钮 */
+/* A. 播放页面的按钮（透明热区，点击发音，不遮挡课本） */
 .page-button {
     pointer-events: auto;
     position: absolute;
     transform: translate(-50%, -50%);
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    /* 玻璃拟态背景 */
-    background: rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    border: 1px solid rgba(255, 255, 255, 0.6);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    background: transparent;
+    border: none;
+    box-shadow: none;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     z-index: 10;
 }
 
-/* 内部核心播放图标 */
+/* 点击时轻微高亮反馈（不盖住文字） */
+.page-button:active {
+    background: rgba(255, 255, 255, 0.35);
+    border-radius: 6px;
+}
+
+/* 隐藏播放图标 */
 .page-button::after {
-    content: '';
-    width: 0;
-    height: 0;
-    border-style: solid;
-    border-width: 8px 0 8px 14px;
-    border-color: transparent transparent transparent white;
-    margin-left: 4px;
-    /* 视觉居中校正 */
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-    transition: all 0.3s ease;
+    display: none;
 }
 
 /* 仍然保留数字，但做得很小很精致，放在右下角或者 hover 显示 */
