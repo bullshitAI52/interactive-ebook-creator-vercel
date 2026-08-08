@@ -61,6 +61,7 @@ class InteractiveBookPlayer {
       return;
     }
 
+    this.hideWordBar();
     // this.stop(); // 允许跨页播放
 
     this.currentPage = pageId;
@@ -164,8 +165,10 @@ class InteractiveBookPlayer {
       }
     }
 
-    // Encode path for network request
-    const encodedMediaSrc = encodeURI(mediaSrc);
+    // Encode path for network request (归一化：防双重编码导致 %20 被读出来)
+    let encodedMediaSrc;
+    try { encodedMediaSrc = encodeURI(decodeURI(mediaSrc)); }
+    catch (e) { encodedMediaSrc = mediaSrc; }
 
     // 切换 暂停/播放 逻辑
     if (this.currentPlayingButton === btnElement) {
@@ -193,7 +196,58 @@ class InteractiveBookPlayer {
     }
 
     // 播放媒体
+    this.currentOverride = button.override || null;
+    this.showWordBar(button);
     return this.playMedia(encodedMediaSrc);
+  }
+
+  // ---- 单词跟读条 ----
+  showWordBar(button) {
+    const bar = document.getElementById('word-bar');
+    const textEl = document.getElementById('word-bar-text');
+    const chipsEl = document.getElementById('word-bar-chips');
+    if (!bar || !textEl || !chipsEl) return;
+    const label = (button && button.label) ? button.label.trim() : '';
+    // 只有 TTS 发音的按钮才有单词跟读（本地音频文件无法拆词）
+    const isTts = this.currentOverride && this.currentOverride.includes('/tts/');
+    if (!label || !isTts) { this.hideWordBar(); return; }
+    // 拆词：英文按空格/标点拆，中文整句作为一个"词"
+    const words = label.split(/[\s,.;:!?'"()—–-]+/).filter(w => w && w.length > 0);
+    if (!words.length) { this.hideWordBar(); return; }
+    textEl.textContent = label;
+    chipsEl.innerHTML = '';
+    words.forEach(word => {
+      const chip = document.createElement('span');
+      chip.className = 'word-chip' + (/[\u4e00-\u9fff]/.test(word) ? ' zh' : '');
+      chip.textContent = word;
+      chip.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.playWord(word, chip);
+      });
+      chipsEl.appendChild(chip);
+    });
+    bar.classList.add('show');
+  }
+
+  hideWordBar() {
+    const bar = document.getElementById('word-bar');
+    if (bar) bar.classList.remove('show');
+  }
+
+  playWord(word, chipEl) {
+    if (!this.currentOverride) return;
+    // 复用按钮的 TTS 地址模式，替换 t= 参数为单词
+    const m = this.currentOverride.match(/^(.*[?&]t=).*$/);
+    if (!m) return;
+    const url = m[1] + encodeURIComponent(word);
+    this.stop();
+    if (chipEl) {
+      document.querySelectorAll('.word-chip').forEach(c => c.classList.remove('playing'));
+      chipEl.classList.add('playing');
+    }
+    const audio = new Audio(url);
+    audio.play().catch(e => console.warn('单词发音失败', e));
+    audio.onended = () => { if (chipEl) chipEl.classList.remove('playing'); };
   }
 
   pause() {
@@ -383,10 +437,12 @@ class InteractiveBookPlayer {
           mediaSrc = base + this.book.audioPool[audioIndex];
         }
       }
-      // Fix: Encode URI for preloader consistency
+      // Fix: Encode URI for preloader consistency（归一化防双重编码）
       // 跳过外部域名音频（如有道发音），避免 CORS fetch 失败；播放时用 <audio> 直连即可
       if (mediaSrc && !/^https?:\/\//.test(mediaSrc)) {
-        const encoded = encodeURI(mediaSrc);
+        let encoded;
+        try { encoded = encodeURI(decodeURI(mediaSrc)); }
+        catch (e) { encoded = mediaSrc; }
         if (!this.audioCache.has(encoded)) audioUrls.add(encoded);
       }
     });
