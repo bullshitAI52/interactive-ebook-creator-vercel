@@ -252,9 +252,54 @@
                 </svg>
             </button>
         </div>
+
+        <!-- 单词跟读条：点击句子按钮后显示，点单词可单独发音 -->
+        <style>
+            .word-bar {
+                display: none;
+                margin-top: 10px;
+                background: #fff;
+                border: 1px solid #e5e7eb;
+                border-radius: 12px;
+                padding: 10px 12px;
+                box-shadow: 0 2px 8px rgba(0,0,0,.06);
+                max-height: 120px;
+                overflow-y: auto;
+            }
+            .word-bar.show { display: block; }
+            .word-bar-text {
+                font-size: 13px;
+                color: #666;
+                margin-bottom: 8px;
+                line-height: 1.5;
+            }
+            .word-bar-chips {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+            .word-chip {
+                padding: 5px 12px;
+                background: #eef2ff;
+                border: 1px solid #c7d2fe;
+                border-radius: 999px;
+                font-size: 15px;
+                color: #3730a3;
+                cursor: pointer;
+                user-select: none;
+                transition: background .15s;
+            }
+            .word-chip:hover { background: #e0e7ff; }
+            .word-chip.playing { background: #2563eb; color: #fff; border-color: #2563eb; }
+            .word-chip.zh { background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
+        </style>
+        <div id="word-bar" class="word-bar">
+            <div id="word-bar-text" class="word-bar-text"></div>
+            <div id="word-bar-chips" class="word-bar-chips"></div>
+        </div>
     </div>
 
-    <script src="js/player.js"></script>
+    <script src="js/player.js?v=2"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const player = new InteractiveBookPlayer('');
