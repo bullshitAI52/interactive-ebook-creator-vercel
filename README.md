@@ -28,12 +28,15 @@
 
 ### 方式 B：全自动生成（快，但建议校对）
 
-无需手动点按钮，用 OCR 自动识别每句英文并生成发音按钮。
+无需手动点按钮，自动识别课本里的 **🎧 耳机图标**，只在有录音标记的位置生成按钮
+（不是每句话都加，和课本完全一致）。
 
 ```bash
-# 1. 把课本页面图片放到一个目录（如 pages/，按页码命名 page-01.png ...）
+# 1. 把课本页面转成图片（PDF 每页导出为图片，按页码命名 page-01.png ...）
+#    - 可用任意 PDF 工具导出，或截图/拍照
+#    - 分辨率建议 1000px+ 宽，识别更准
 
-# 2. 运行自动生成脚本（OCR 识别句子 + 生成按钮数据）
+# 2. 运行自动生成脚本（检测 🎧 图标 + OCR 句子 + 关联发音）
 python3 /root/.hermes/scripts/rebuild_buttons.py \
     --pages pages/ \
     --output ui/books/<书名>/book-v2.js
@@ -82,21 +85,65 @@ curl "http://127.0.0.1:8790/?t=Hello%20world"   # 返回 mp3
 
 ---
 
-## 书的数据格式
+## 书的数据格式（PDF/图片 → 点读电子书，保存成什么）
+
+**核心概念**：一本书 = 一个文件夹，包含「页面图片」+「按钮数据」两个部分。
+PDF 本身不需要保存——PDF 被转成**图片**（播放器按页显示），按钮位置/文字/发音单独存在**按钮数据文件**里。
+
+### 推荐格式：松散目录（一个文件夹）
 
 ```
-ui/books/<书名>/
-├── book-v2.js      # 按钮数据（页面+按钮坐标+发音文本），浏览器直接加载
+ui/books/<书名>/              ← 书文件夹（如 ui/books/grade5-fall-web/）
+├── book-v2.js                ← 按钮数据（JSON 格式，见下）
 └── images/
-    └── page-01.webp ...   # 页面图片（按页加载，手机快）
-
-按钮字段：{ x, y, width, height, label, override }
-  - x/y/w/h：按钮在页面上的归一化坐标（0-1）
-  - label：OCR 识别的句子文本
-  - override：发音地址（默认 /ebook/tts/?t=句子文本）
+    └── page-01.webp ...      ← 页面图片（PDF 每页转一张）
 ```
 
-旧格式：`.zip` 包（`book.json` + `images/` + `audio/`）仍受支持，播放器可直读。
+`book-v2.js` 的内容（就是 JSON，浏览器直接加载）：
+
+```json
+{
+  "title": "人教版五年级英语上册",
+  "pages": {
+    "page1": {
+      "image": "books/grade5-fall-web/images/page-01.webp",
+      "buttons": [
+        {
+          "x": 0.53, "y": 0.07,          // 按钮位置：页面宽高的比例（0-1，左上角为原点）
+          "width": 0.08, "height": 0.03, // 按钮大小：页面宽高的比例
+          "label": "MHA",                // 按钮文字（OCR 识别的句子/单词）
+          "override": "/ebook/tts/?t=MHA" // 发音地址（edge-tts 自动生成）
+        }
+      ]
+    }
+  }
+}
+```
+
+- **坐标全部是 0-1 归一化比例**，所以换不同分辨率的图片也不会错位
+- `override` 是发音来源：可以指向 TTS 服务（自动生成音频），也可以指向本地音频文件
+- 加按钮 = 往 `buttons` 数组里加一条；改位置 = 改 x/y
+
+### 旧格式：ZIP 包（编辑器导出）
+
+```
+book.zip
+├── book.json       ← 同上结构（pages/buttons）
+├── images/         ← 页面图片
+└── audio/          ← 音频文件（按钮 override 指向这里）
+```
+
+播放器两种格式都能读。
+
+### 加载方式（怎么用）
+
+```
+书库入口:  ui/library.html          （列出 books.json 里登记的所有书）
+直接播放:  ui/player.html?book=books/<书名>/book-v2.js
+```
+
+**一句话总结**：PDF 转成图片 + 按钮数据（JSON）存进 `ui/books/<书名>/` 文件夹，
+在 `ui/books.json` 里登记一行书名，书库就能打开；孩子点按钮就发音。
 
 ---
 
