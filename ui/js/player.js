@@ -327,8 +327,8 @@ class InteractiveBookPlayer {
   // 播放音频并返回 Promise
   playMedia(src) {
     return new Promise((resolve, reject) => {
-      // 停止当前播放
-      this.stop();
+      // 调用方 playButton 已停止旧音频并设置当前热区；这里不能再次 stop，
+      // 否则会清除刚设置的书页播放高亮。
 
       // 标记 active 状态由调用者(playButton)处理，这里只负责播放逻辑完结回调
 
