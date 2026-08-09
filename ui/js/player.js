@@ -11,6 +11,7 @@ class InteractiveBookPlayer {
     this.testAudioGain = null;
     this.currentPlayingButton = null; // 当前正在播放的按钮DOM
     this.wordChips = [];              // 当前句子的单词节点
+    this.wordTextTokens = [];         // 句子显示区的逐词节点
     this.wordWeights = [];            // 按单词长度估算的朗读进度权重
     this.activeWordIndex = -1;
 
@@ -229,6 +230,12 @@ class InteractiveBookPlayer {
       });
       chipsEl.appendChild(chip);
       this.wordChips.push(chip);
+      if (textEl.childNodes.length) textEl.appendChild(document.createTextNode(" "));
+      const token = document.createElement("span");
+      token.className = "reading-word";
+      token.textContent = word;
+      textEl.appendChild(token);
+      this.wordTextTokens.push(token);
     });
     bar.classList.add('show');
   }

@@ -268,11 +268,17 @@
             }
             .word-bar.show { display: block; }
             .word-bar-text {
-                font-size: 13px;
-                color: #666;
-                margin-bottom: 8px;
-                line-height: 1.5;
+                font-size: 16px;
+                color: #475569;
+                margin-bottom: 10px;
+                line-height: 1.8;
+                font-weight: 600;
             }
+            .reading-word { transition: color .12s, background .12s, transform .12s; border-radius: 4px; padding: 1px 2px; }
+            .reading-word.spoken { color: #60a5fa; }
+            .reading-word.playing { color: #fff; background: #2563eb; box-shadow: 0 2px 8px rgba(37,99,235,.35); transform: translateY(-1px); }
+            .reading-word.playing::after { content: "▌"; display: inline-block; margin-left: 2px; color: #bfdbfe; animation: reader-caret .55s step-end infinite; }
+            @keyframes reader-caret { 50% { opacity: 0; } }
             .word-bar-chips {
                 display: flex;
                 flex-wrap: wrap;
@@ -301,7 +307,7 @@
         </div>
     </div>
 
-    <script src="js/player.js?v=4"></script>
+    <script src="js/player.js?v=5"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const player = new InteractiveBookPlayer('');
