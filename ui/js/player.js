@@ -10,6 +10,9 @@ class InteractiveBookPlayer {
     this.testAudioSource = null;
     this.testAudioGain = null;
     this.currentPlayingButton = null; // 当前正在播放的按钮DOM
+    this.wordChips = [];              // 当前句子的单词节点
+    this.wordWeights = [];            // 按单词长度估算的朗读进度权重
+    this.activeWordIndex = -1;
 
     // 音频缓存和预加载
     this.audioCache = new Map(); // 缓存已加载的音频URL
@@ -225,6 +228,7 @@ class InteractiveBookPlayer {
         this.playWord(word, chip);
       });
       chipsEl.appendChild(chip);
+      this.wordChips.push(chip);
     });
     bar.classList.add('show');
   }
@@ -248,6 +252,41 @@ class InteractiveBookPlayer {
     const audio = new Audio(url);
     audio.play().catch(e => console.warn('单词发音失败', e));
     audio.onended = () => { if (chipEl) chipEl.classList.remove('playing'); };
+  }
+
+  // 根据音频真实播放进度逐词高亮。Edge TTS 未提供时间戳时，按单词长度估算，
+  // 比平均切换更贴近自然语速；音频暂停/拖动后会自动同步。
+  updateWordProgress(currentTime, duration) {
+    if (!this.wordChips.length || !Number.isFinite(duration) || duration <= 0) return;
+    const elapsed = Math.max(0, Math.min(currentTime, duration));
+    const total = this.wordWeights.reduce((sum, weight) => sum + weight, 0) || this.wordChips.length;
+    const target = (elapsed / duration) * total;
+    let accumulated = 0;
+    let index = this.wordChips.length - 1;
+    for (let i = 0; i < this.wordWeights.length; i++) {
+      accumulated += this.wordWeights[i];
+      if (target < accumulated) { index = i; break; }
+    }
+    if (index === this.activeWordIndex) return;
+    this.activeWordIndex = index;
+    this.wordChips.forEach((chip, i) => {
+      chip.classList.toggle(playing, i === index);
+      chip.classList.toggle(spoken, i < index);
+    });
+  }
+
+  resetWordProgress() {
+    this.activeWordIndex = -1;
+    this.wordChips.forEach(chip => chip.classList.remove(playing, spoken));
+  }
+
+  finishWordProgress() {
+    if (!this.wordChips.length) return;
+    this.activeWordIndex = this.wordChips.length - 1;
+    this.wordChips.forEach(chip => {
+      chip.classList.remove(playing);
+      chip.classList.add(spoken);
+    });
   }
 
   pause() {
@@ -285,6 +324,7 @@ class InteractiveBookPlayer {
       // 标记 active 状态由调用者(playButton)处理，这里只负责播放逻辑完结回调
 
       const onEnd = () => {
+        this.finishWordProgress();
         if (this.currentPlayingButton) {
           this.currentPlayingButton.classList.remove('playing');
           this.currentPlayingButton = null;
@@ -341,6 +381,8 @@ class InteractiveBookPlayer {
 
         this.audioElement.onended = onEnd;
         this.audioElement.onerror = onError;
+        this.audioElement.ontimeupdate = () => this.updateWordProgress(this.audioElement.currentTime, this.audioElement.duration);
+        this.audioElement.onloadedmetadata = () => this.updateWordProgress(this.audioElement.currentTime, this.audioElement.duration);
 
         this.audioElement.src = cachedSrc;
         this.audioElement.play().catch(onError);
@@ -350,6 +392,7 @@ class InteractiveBookPlayer {
   }
 
   stop() {
+    this.resetWordProgress();
     if (this.audioElement && !this.audioElement.paused) {
       this.audioElement.pause();
       this.audioElement.currentTime = 0;
