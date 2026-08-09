@@ -193,6 +193,56 @@
             font-size: 0.8rem;
             pointer-events: none;
         }
+
+
+        /* 手机竖屏：书页优先，控件与跟读区保持易点按。 */
+        @media (max-width: 767px) and (orientation: portrait) {
+            .book-stage { padding: 6px; }
+            .page-content-wrapper { max-width: 100%; max-height: 100%; }
+            .page-info { top: 6px; font-size: .72rem; padding: 3px 9px; }
+            .controls-bar { padding: 9px 8px calc(9px + env(safe-area-inset-bottom, 0px)); gap: 7px; }
+            .btn-control { min-height: 42px; padding: 8px 10px; font-size: .82rem; justify-content: center; }
+            .btn-control svg { width: 18px; height: 18px; flex: 0 0 auto; }
+            .word-bar { margin: 6px 8px 8px; padding: 8px 10px; max-height: 132px; border-radius: 10px; }
+            .word-bar-text { font-size: 15px; line-height: 1.65; margin-bottom: 7px; }
+            .word-chip { padding: 4px 10px; font-size: 14px; }
+        }
+
+        /* iPad 横屏：书页固定在左，跟读与翻页控制固定在右，减少上下跳动。 */
+        @media (min-width: 768px) and (orientation: landscape) {
+            .player-container {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) minmax(290px, 360px);
+                grid-template-rows: minmax(0, 1fr) auto;
+                column-gap: 0;
+            }
+            .book-stage { grid-column: 1; grid-row: 1 / span 2; padding: 22px 28px; }
+            .page-content-wrapper { max-height: calc(100dvh - 44px); }
+            .word-bar {
+                grid-column: 2;
+                grid-row: 1;
+                display: block;
+                align-self: stretch;
+                margin: 16px 16px 8px 0;
+                max-height: none;
+                min-height: 120px;
+                overflow-y: auto;
+            }
+            .word-bar:not(.show) { display: block; }
+            .word-bar:not(.show)::before { content: "点书页中的英文开始跟读"; color: #94a3b8; font-size: 15px; }
+            .controls-bar {
+                grid-column: 2;
+                grid-row: 2;
+                margin: 0 16px 16px 0;
+                padding: 10px;
+                border-radius: 14px;
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+            .btn-control { justify-content: center; min-height: 42px; }
+            .page-info { top: 16px; }
+        }
     </style>
 </head>
 
