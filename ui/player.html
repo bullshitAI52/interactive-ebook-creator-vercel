@@ -307,7 +307,7 @@
         </div>
     </div>
 
-    <script src="js/player.js?v=7"></script>
+    <script src="js/player.js?v=8"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const player = new InteractiveBookPlayer('');
@@ -442,7 +442,8 @@
                         const res = await fetch(bookUrl);
                         if (!res.ok) throw new Error('Fetch failed');
                         const blob = await res.blob();
-                        const file = new File([blob], bookUrl.split('/').pop() || 'book.zip');
+                        const fileName = (bookUrl.split('/').pop() || 'book.zip').split('?')[0];
+                        const file = new File([blob], fileName);
                         handleFile(file);
                     } catch (e) {
                         console.error('Auto-load failed', e);
