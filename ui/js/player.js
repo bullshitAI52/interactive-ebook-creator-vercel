@@ -10,6 +10,10 @@ class InteractiveBookPlayer {
     this.testAudioSource = null;
     this.testAudioGain = null;
     this.currentPlayingButton = null; // 当前正在播放的按钮DOM
+    this.wordChips = [];              // 当前句子的单词节点
+    this.wordTextTokens = [];         // 句子显示区的逐词节点
+    this.wordWeights = [];            // 按单词长度估算的朗读进度权重
+    this.activeWordIndex = -1;
 
     // 音频缓存和预加载
     this.audioCache = new Map(); // 缓存已加载的音频URL
@@ -201,53 +205,97 @@ class InteractiveBookPlayer {
     return this.playMedia(encodedMediaSrc);
   }
 
-  // ---- 单词跟读条 ----
+  // ---- 单词跟读条与句子逐词高亮 ----
   showWordBar(button) {
-    const bar = document.getElementById('word-bar');
-    const textEl = document.getElementById('word-bar-text');
-    const chipsEl = document.getElementById('word-bar-chips');
+    const bar = document.getElementById("word-bar");
+    const textEl = document.getElementById("word-bar-text");
+    const chipsEl = document.getElementById("word-bar-chips");
     if (!bar || !textEl || !chipsEl) return;
-    const label = (button && button.label) ? button.label.trim() : '';
-    // 只有 TTS 发音的按钮才有单词跟读（本地音频文件无法拆词）
-    const isTts = this.currentOverride && this.currentOverride.includes('/tts/');
+    const label = (button && button.label) ? button.label.trim() : "";
+    const isTts = this.currentOverride && this.currentOverride.includes("/tts/");
     if (!label || !isTts) { this.hideWordBar(); return; }
-    // 拆词：英文按空格/标点拆，中文整句作为一个"词"
-    const words = label.split(/[\s,.;:!?'"()—–-]+/).filter(w => w && w.length > 0);
+    const words = label.split(/[\s,.;:!?()—–-]+/).filter(word => word && word.length > 0);
     if (!words.length) { this.hideWordBar(); return; }
-    textEl.textContent = label;
-    chipsEl.innerHTML = '';
+
+    textEl.textContent = "";
+    chipsEl.innerHTML = "";
+    this.wordChips = [];
+    this.wordTextTokens = [];
+    this.wordWeights = words.map(word => Math.max(1, word.replace(/[^A-Za-z0-9]/g, "").length));
+    this.activeWordIndex = -1;
+
     words.forEach(word => {
-      const chip = document.createElement('span');
-      chip.className = 'word-chip' + (/[\u4e00-\u9fff]/.test(word) ? ' zh' : '');
+      if (textEl.childNodes.length) textEl.appendChild(document.createTextNode(" "));
+      const token = document.createElement("span");
+      token.className = "reading-word";
+      token.textContent = word;
+      textEl.appendChild(token);
+      this.wordTextTokens.push(token);
+
+      const chip = document.createElement("span");
+      chip.className = "word-chip" + (/[^\x00-\x7F]/.test(word) ? " zh" : "");
       chip.textContent = word;
-      chip.addEventListener('click', (e) => {
-        e.stopPropagation();
+      chip.addEventListener("click", event => {
+        event.stopPropagation();
         this.playWord(word, chip);
       });
       chipsEl.appendChild(chip);
+      this.wordChips.push(chip);
     });
-    bar.classList.add('show');
+    bar.classList.add("show");
   }
 
   hideWordBar() {
-    const bar = document.getElementById('word-bar');
-    if (bar) bar.classList.remove('show');
+    const bar = document.getElementById("word-bar");
+    if (bar) bar.classList.remove("show");
   }
 
   playWord(word, chipEl) {
     if (!this.currentOverride) return;
-    // 复用按钮的 TTS 地址模式，替换 t= 参数为单词
-    const m = this.currentOverride.match(/^(.*[?&]t=).*$/);
-    if (!m) return;
-    const url = m[1] + encodeURIComponent(word);
+    const match = this.currentOverride.match(/^(.*[?&]t=).*$/);
+    if (!match) return;
+    const url = match[1] + encodeURIComponent(word);
     this.stop();
     if (chipEl) {
-      document.querySelectorAll('.word-chip').forEach(c => c.classList.remove('playing'));
-      chipEl.classList.add('playing');
+      document.querySelectorAll(".word-chip").forEach(chip => chip.classList.remove("playing"));
+      chipEl.classList.add("playing");
     }
     const audio = new Audio(url);
-    audio.play().catch(e => console.warn('单词发音失败', e));
-    audio.onended = () => { if (chipEl) chipEl.classList.remove('playing'); };
+    audio.play().catch(error => console.warn("单词发音失败", error));
+    audio.onended = () => { if (chipEl) chipEl.classList.remove("playing"); };
+  }
+
+  // 用音频播放进度推动句子与词块；词长权重让切换比平均分配更自然。
+  updateWordProgress(currentTime, duration) {
+    if (!this.wordChips.length || !Number.isFinite(duration) || duration <= 0) return;
+    const target = (Math.max(0, Math.min(currentTime, duration)) / duration) *
+      (this.wordWeights.reduce((sum, weight) => sum + weight, 0) || this.wordChips.length);
+    let accumulated = 0;
+    let index = this.wordChips.length - 1;
+    for (let i = 0; i < this.wordWeights.length; i++) {
+      accumulated += this.wordWeights[i];
+      if (target < accumulated) { index = i; break; }
+    }
+    if (index === this.activeWordIndex) return;
+    this.activeWordIndex = index;
+    [this.wordChips, this.wordTextTokens].forEach(items => items.forEach((item, i) => {
+      item.classList.toggle("playing", i === index);
+      item.classList.toggle("spoken", i < index);
+    }));
+  }
+
+  resetWordProgress() {
+    this.activeWordIndex = -1;
+    [this.wordChips, this.wordTextTokens].forEach(items => items.forEach(item => item.classList.remove("playing", "spoken")));
+  }
+
+  finishWordProgress() {
+    if (!this.wordChips.length) return;
+    this.activeWordIndex = this.wordChips.length - 1;
+    [this.wordChips, this.wordTextTokens].forEach(items => items.forEach(item => {
+      item.classList.remove("playing");
+      item.classList.add("spoken");
+    }));
   }
 
   pause() {
@@ -279,12 +327,13 @@ class InteractiveBookPlayer {
   // 播放音频并返回 Promise
   playMedia(src) {
     return new Promise((resolve, reject) => {
-      // 停止当前播放
-      this.stop();
+      // 调用方 playButton 已停止旧音频并设置当前热区；这里不能再次 stop，
+      // 否则会清除刚设置的书页播放高亮。
 
       // 标记 active 状态由调用者(playButton)处理，这里只负责播放逻辑完结回调
 
       const onEnd = () => {
+        this.finishWordProgress();
         if (this.currentPlayingButton) {
           this.currentPlayingButton.classList.remove('playing');
           this.currentPlayingButton = null;
@@ -341,6 +390,8 @@ class InteractiveBookPlayer {
 
         this.audioElement.onended = onEnd;
         this.audioElement.onerror = onError;
+        this.audioElement.ontimeupdate = () => this.updateWordProgress(this.audioElement.currentTime, this.audioElement.duration);
+        this.audioElement.onloadedmetadata = () => this.updateWordProgress(this.audioElement.currentTime, this.audioElement.duration);
 
         this.audioElement.src = cachedSrc;
         this.audioElement.play().catch(onError);
@@ -350,6 +401,7 @@ class InteractiveBookPlayer {
   }
 
   stop() {
+    this.resetWordProgress();
     if (this.audioElement && !this.audioElement.paused) {
       this.audioElement.pause();
       this.audioElement.currentTime = 0;

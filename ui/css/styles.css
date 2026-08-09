@@ -700,6 +700,19 @@ body {
 }
 
 /* 播放状态 - 显示暂停图标（双竖线）*/
+.page-button.playing {
+    background: rgba(37, 99, 235, 0.30) !important;
+    border: 2px solid rgba(255, 255, 255, 0.95);
+    border-radius: 8px;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.28), 0 4px 16px rgba(30, 64, 175, 0.45);
+    animation: ebook-reading-hotspot 1s ease-in-out infinite alternate;
+}
+
+@keyframes ebook-reading-hotspot {
+    from { background: rgba(37, 99, 235, 0.20); }
+    to { background: rgba(37, 99, 235, 0.48); }
+}
+
 .page-button.playing::after {
     border: none;
     width: 14px;
