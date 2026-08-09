@@ -270,22 +270,22 @@ class InteractiveBookPlayer {
     if (index === this.activeWordIndex) return;
     this.activeWordIndex = index;
     this.wordChips.forEach((chip, i) => {
-      chip.classList.toggle(playing, i === index);
-      chip.classList.toggle(spoken, i < index);
+      chip.classList.toggle('playing', i === index);
+      chip.classList.toggle('spoken', i < index);
     });
   }
 
   resetWordProgress() {
     this.activeWordIndex = -1;
-    this.wordChips.forEach(chip => chip.classList.remove(playing, spoken));
+    this.wordChips.forEach(chip => chip.classList.remove('playing', 'spoken'));
   }
 
   finishWordProgress() {
     if (!this.wordChips.length) return;
     this.activeWordIndex = this.wordChips.length - 1;
     this.wordChips.forEach(chip => {
-      chip.classList.remove(playing);
-      chip.classList.add(spoken);
+      chip.classList.remove('playing');
+      chip.classList.add('spoken');
     });
   }
 
